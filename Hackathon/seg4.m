@@ -5,14 +5,16 @@ function [BB,mask]=seg4(img1)
     Lab=rgb2lab(img1);
     a_img1=Lab(:,:,2);
     b_img1=Lab(:,:,3);
-    mask=(s>0.75).*(s<0.80).*(h>0.98).*(b_img1>29).*(b_img1<46).*(a_img1>65).*(a_img1<75);
-    mask=mask+(s>0.3).*(s<0.45).*(h>0.05).*(h<0.1).*(b_img1>25).*(b_img1<35).*(a_img1>0).*(a_img1<10);
-    mask=mask+(s>0.7).*(s<0.9).*(h>0.15).*(h<0.17).*(b_img1>80).*(b_img1<85).*(a_img1>-20).*(a_img1<-10);
+    mask=(s>0.75).*(h>0.98).*(b_img1>29).*(b_img1<46).*(a_img1>50).*(a_img1<75);
+    mask=mask+(s>0.3).*(s<0.65).*(h>0.05).*(h<0.15).*(b_img1>25).*(b_img1<45).*(a_img1>0).*(a_img1<10);
+    mask=mask+(s>0.65).*(h<0.2).*(b_img1>60).*(b_img1<90).*(a_img1>-20).*(a_img1<0);
     mask = medfilt2(mask);
     mask = medfilt2(mask);
     mask = medfilt2(mask,[5 5]);
     mask = medfilt2(mask,[5 5]);
-    
+    mask = medfilt2(mask,[5 5]);
+    mask = medfilt2(mask,[5 5]);
+
     se90=strel('line',3,90);
     se0=strel('line',3,0);
     mask=imdilate(mask,[se90 se0]);

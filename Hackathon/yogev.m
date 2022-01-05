@@ -13,8 +13,8 @@ H = dip_draw_hough_circle(img2_n,peaks2,1);
 display_img(H,"")
 %%
 
-res = img2;
-[BB, mask] = seg2_alon(res);
+res = img1;
+[BB, mask] = seg2(res);
 
 res = insertShape(res,"Rectangle",BB);
 

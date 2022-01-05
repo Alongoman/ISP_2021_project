@@ -1,17 +1,24 @@
 function [BB, mask] = seg2_alon(img)
-    
-  
+    [n,m,k] = size(img);
+    mask = zeros(n,m);
      BB = zeros([1,4]);
-
+    r1 = 2;
+    r2 = uint16((n+m)/8);
     if(size(img,3)<3)
         mask = ones(size(img));
     else
-         bw = edge(img(:,:,2));
-         h = dip_hough_circles(bw,1,1);
-         peaks1 = dip_houghpeaks3d(h);
-         circle = rgb2gray(dip_draw_hough_circle(zeros(size(img)),peaks1,1));
-         c_log = logical(circle);
-         mask = imfill(c_log,'holes');
+        radiusRange = [r1,r2];
+        [centers,radii] = imfindcircles(img,radiusRange);
+        [R,i] = max(radii);
+        c = centers(i,:);
+        mask = insertShape(mask,'circle',[c,R],'LineWidth',5);
+        mask = imfill(logical(mask),'holes');
+%          bw = edge(img(:,:,2));
+%          h = dip_hough_circles(bw,1,1);
+%          peaks1 = dip_houghpeaks3d(h);
+%          circle = rgb2gray(dip_draw_hough_circle(zeros(size(img)),peaks1,1));
+%          c_log = logical(circle);
+%          mask = imfill(c_log,'holes');
 %         mask = bwareafilt(mask,1);
     end
 
