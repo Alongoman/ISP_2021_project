@@ -6,10 +6,13 @@ function [BB, mask] = seg3(img)
     %end
 
     BB = zeros([1,4]);
-    mask = edge(img(:,:,2),'Canny');
-
-    %create the polyshape
-    mask = bwareafilt(mask,1);
+ if(size(img,3)<3)
+        mask = ones(size(img));
+    else
+         mask = edge(img(:,:,2),'Canny');
+        mask = bwareafilt(mask,1);
+ end
+    
     [poly_x,poly_y] = find(mask==1);
     polyin = polyshape(poly_x,poly_y);
     [ylim,xlim] = boundingbox(polyin);
