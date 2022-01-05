@@ -1,5 +1,5 @@
 
-function [rec_params,BW] = dip_edge_detect(img)
+function [rec_params,BW] = seg6(img)
 
 if(size(img,3)>1)
     img = rgb2gray(img);
