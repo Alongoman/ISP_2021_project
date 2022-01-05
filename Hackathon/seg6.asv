@@ -1,21 +1,43 @@
 
-function [rec_params,BW] = seg6(img)
+function [rec_params,BB] = seg6(img)
+addpath("functions");
 [n,m,k] = size(img);
-
-if k == 1
-   a = 0;
-   % do here for no color
-end
-
 rec_params = zeros([1,4]);
 BW = zeros(n,m);
 
-idx = kmeans(img(:),
+if k < 3
+   BW = ones(n,m);
+else
 
-%BW = edge(img);
+
+[c,m,y,k] = dip_rgb2cymk(img);
+% displayCYMK(c,m,y,k);
+figure;imshow(m);title("magenta");
+[h,s,v] = dip_rgb2hsv(img);
+% figure;
+% imshow(h);
+% title('HSV - Hue space');
+% colormap('hsv');
+% figure;
+% imshow(s);
+% title('HSV - s space');
+% figure;
+% imshow(v);
+% title('HSV - v space');
 
 
+th = 0.4;
+img3 = norm_pic(m);
+img3(img3<th) = 0;
+img3(img3>=th) = 1;
 
+% img3 = medfilt2(img3,[5,5]);
+img3 = imgaussfilt(img3)
+
+figure;imshow(img3,[]);title("final");
+BW = uint16(img3);
+
+end
 %create the polyshape
 [poly_x,poly_y] = find(BW==1);
 polyin = polyshape(poly_x,poly_y);
@@ -36,5 +58,11 @@ rec_params(4) = dy;
 
 rec_params = uint16(rec_params);
 BB = logical(BW);
+
+%img = rgb2gray(img);
+res = insertShape(img,"Rectangle",rec_params);
+display_img(res,"function diamond in a box")
+%display_img(BW2,"function edge")
+
 
 end
