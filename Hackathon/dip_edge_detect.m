@@ -1,5 +1,5 @@
 
-function [rec_params,BW] = dip_edge_detect(img)
+function [rec_params,BB] = dip_edge_detect(img)
 
 if(size(img,3)>1)
     img = rgb2gray(img);
@@ -27,5 +27,6 @@ rec_params(3) = dx;
 rec_params(4) = dy;
 
 rec_params = uint16(rec_params);
+BB = logical(BW);
 
 end
