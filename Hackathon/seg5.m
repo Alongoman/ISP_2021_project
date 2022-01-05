@@ -1,4 +1,5 @@
 function [BB,mask]=seg5(img1)
+    img1=double(img1);
     img1=(img1-min(img1(:)))./(max(img1(:)-min(img1(:))));
     [h,s,v]=rgb2hsv(img1);
     Lab=rgb2lab(img1);
