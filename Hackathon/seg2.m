@@ -1,11 +1,13 @@
 function [BB, mask] = seg2(img)
     
-    if(size(img,3)>1)
-        img = rgb2gray(img);
-    end
+  
+    
+    %if(size(img,3)>1)
+    %    img = rgb2gray(img);
+    %end
 
     BB = zeros([1,4]);
-    mask = edge(img);
+    mask = edge(img(:,:,2),'Canny');
 
     %create the polyshape
     mask = bwareafilt(mask,1);
@@ -27,4 +29,6 @@ function [BB, mask] = seg2(img)
     BB(4) = dy;
 
     BB = uint16(BB);
+    mask = logical(mask);
+
 end
