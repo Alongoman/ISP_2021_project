@@ -1,0 +1,40 @@
+
+function [rec_params,BW] = seg6(img)
+[n,m,k] = size(img);
+
+if k == 1
+   a = 0;
+   % do here for no color
+end
+
+rec_params = zeros([1,4]);
+BW = zeros(n,m);
+
+idx = kmeans(img(:),
+
+%BW = edge(img);
+
+
+
+%create the polyshape
+[poly_x,poly_y] = find(BW==1);
+polyin = polyshape(poly_x,poly_y);
+[ylim,xlim] = boundingbox(polyin);
+
+if(length(ylim)<2 || length(xlim)<2)
+    return;
+end
+
+%rectangular params
+dx = xlim(2) - xlim(1);
+dy = ylim(2) - ylim(1);
+
+rec_params(1) = xlim(1);
+rec_params(2) = ylim(1);
+rec_params(3) = dx;
+rec_params(4) = dy;
+
+rec_params = uint16(rec_params);
+BB = logical(BW);
+
+end
