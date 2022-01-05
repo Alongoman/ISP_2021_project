@@ -27,5 +27,6 @@ rec_params(3) = dx;
 rec_params(4) = dy;
 
 rec_params = uint16(rec_params);
+BB = logical(BW);
 
 end
