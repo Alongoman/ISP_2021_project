@@ -1,6 +1,5 @@
-function [BB, mask] = seg2(img)
-    
-  
+function [BB, mask] = seg3(img)
+
     
     %if(size(img,3)>1)
     %    img = rgb2gray(img);
@@ -30,5 +29,4 @@ function [BB, mask] = seg2(img)
 
     BB = uint16(BB);
     mask = logical(mask);
-
 end
