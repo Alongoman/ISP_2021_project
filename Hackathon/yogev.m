@@ -1,6 +1,6 @@
 %%
 addpath('functions');
-
+addpath('train');
 %% 
 img1 = imread("I2_train1.jpg");
 img2 = imread("I2_train2.jpg");
@@ -12,11 +12,13 @@ peaks2 = dip_houghpeaks3d(h_2);
 H = dip_draw_hough_circle(img2_n,peaks2,1);
 display_img(H,"")
 %%
-[BB, mask] = seg2(img2);
 
-img2 = insertShape(img2,"Rectangle",BB);
+res = img2;
+[BB, mask] = seg2_alon(res);
 
-display_img(img2,"diamond in a box")
+res = insertShape(res,"Rectangle",BB);
+
+display_img(res,"diamond in a box")
 
 function display_img(img, head)
 figure

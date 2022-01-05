@@ -1,4 +1,4 @@
-function [BB,mask]=seg3(img1)
+function [BB,mask]=seg1(img1)
     img1=double(img1);
     img1=(img1-min(img1(:)))./(max(img1(:)-min(img1(:))));
     [h,s,v]=rgb2hsv(img1);
@@ -6,7 +6,7 @@ function [BB,mask]=seg3(img1)
     a_img1=Lab(:,:,2);
     b_img1=Lab(:,:,3);
     
-    mask=(s>0.6);
+    mask=(h>0.4);;%(s>0c.6).*(s<0.85).*(h>0).*(h<0.1).*(b_img1>15).*(b_img1<57).*(a_img1>10).*(a_img1<85);
     mask = medfilt2(mask);
     mask = medfilt2(mask);
     mask = medfilt2(mask,[5 5]);
