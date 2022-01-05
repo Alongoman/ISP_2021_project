@@ -1,6 +1,5 @@
 
 function [rec_params,BW] = seg6(img)
-addpath("functions");
 [n,m,k] = size(img);
 rec_params = zeros([1,4]);
 BW = zeros(n,m);
@@ -9,11 +8,8 @@ if k < 3
    BW = ones(n,m);
 else
 
-
 [c,m,y,k] = dip_rgb2cymk(img);
 img3 = m;
-
-
 
 th = 0.45;
 img3 = norm_pic(img3);
@@ -49,4 +45,17 @@ BW = logical(BW);
 
 
 
+end
+
+function [C,Y,M,K] = dip_rgb2cymk(img) % get a N x M x 4 matrix
+    img = norm_pic(img);
+    K = min(1-img,[],3);
+    C = (1-K-img(:,:,1))./(1-K);
+    M = (1-K-img(:,:,2))./(1-K);
+    Y = (1-K-img(:,:,3))./(1-K);
+end
+
+function normalized_pic = norm_pic(gs_pic)
+gs_pic = double(gs_pic);
+normalized_pic = (gs_pic - min(gs_pic(:)))/(max(gs_pic(:))-min(gs_pic(:)));
 end

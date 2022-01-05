@@ -1,0 +1,6 @@
+% DIP - Alon Goldmann 312592173, Yogev Hadadi 311436273
+function normalized_pic = find_mask(pic,features)
+
+
+
+end
