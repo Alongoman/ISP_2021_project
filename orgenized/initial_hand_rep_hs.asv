@@ -46,11 +46,11 @@ function [handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img)
     
     % Hue
     tmp=value_mask.*hue_small;
-    x = tmp(mask);%here we take the hue that are part of sat group (the hue of object with high sat)
+    x = tmp(mask);%here we take the hue that are part of 
     clust = kmeans(x,2);
     [miu_h1,sigma_h1]=normfit(x(clust==1));
     [miu_h2,sigma_h2]=normfit(x(clust==2));
-    if miu_h1<miu_h2 %here we take the low hue
+    if miu_h1<miu_h2
         miu_h=miu_h1;sigma_h=sigma_h1;
     else
         miu_h=miu_h2;sigma_h=sigma_h2;
@@ -59,8 +59,6 @@ function [handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img)
     hand.hue_low_th = miu_h-sqrt(2*sigma_h^2*(err-0.5*log(2*pi*sigma_h^2)));
     hand.hue_high_th = miu_h+sqrt(2*sigma_h^2*(err-0.5*log(2*pi*sigma_h^2)));
     
-    mask=logical(mask.*(tmp>=hand.hue_low_th).*(tmp<=hand.hue_high_th));
-
     % Sat again
     tmp=value_mask.*sat_small;
     x = tmp(mask);
@@ -75,6 +73,7 @@ function [handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img)
     
     hand.sat_low_th = miu_h-sqrt(2*sigma_h^2*(err-0.5*log(2*pi*sigma_h^2)));
     hand.sat_high_th = miu_h+sqrt(2*sigma_h^2*(err-0.5*log(2*pi*sigma_h^2)));
+
 
 
     handles.hand = hand;
