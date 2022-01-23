@@ -1,17 +1,24 @@
-function [BB, mask] = seg2(img)
-    
-    img = double(img);
+function [BB, mask] = seg2_alon(img)
+    [n,m,k] = size(img);
+    mask = zeros(n,m);
      BB = zeros([1,4]);
-
+    r1 = 2;
+    r2 = uint16((n+m)/8);
     if(size(img,3)<3)
         mask = ones(size(img));
     else
-         bw = edge(img(:,:,2));
-         h = dip_hough_circles(bw,4,5);
-         peaks1 = dip_houghpeaks3d(h);
-         circle = rgb2gray(dip_draw_hough_circle(zeros(size(img)),peaks1,1));
-         c_log = logical(circle);
-         mask = imfill(c_log,'holes');
+        radiusRange = [r1,r2];
+        [centers,radii] = imfindcircles(img,radiusRange);
+        [R,i] = max(radii);
+        c = centers(i,:);
+        mask = insertShape(mask,'circle',[c,R],'LineWidth',5);
+        mask = imfill(logical(mask),'holes');
+%          bw = edge(img(:,:,2));
+%          h = dip_hough_circles(bw,1,1);
+%          peaks1 = dip_houghpeaks3d(h);
+%          circle = rgb2gray(dip_draw_hough_circle(zeros(size(img)),peaks1,1));
+%          c_log = logical(circle);
+%          mask = imfill(c_log,'holes');
 %         mask = bwareafilt(mask,1);
     end
 
@@ -36,37 +43,6 @@ function [BB, mask] = seg2(img)
     BB = uint16(BB);
     mask = logical(mask);
 
-end
-
-%DIP - Alon Goldmann 312592173, Yogev Hadadi 311436273
-function H = dip_hough_circles(BW, R0, T0)
-
-
-    [M,N] = size(BW);
-    Rmin = 80;
-    Rmax = 100;
-    R = Rmin:R0:Rmax;
-    T = 0:T0:360;
-    T=deg2rad(T);
-    
-    H = zeros(M,N,length(R));
-    [y,x] = find(BW == 1);
-    
-    for i=1:length(x)
-        for r=1:length(R)
-                
-            a_mat=round(x(i)-R(r)*cos(T));
-            b_mat=round(y(i)-R(r)*sin(T));
-            
-            a=a_mat((a_mat>0) & (a_mat<=N) & (b_mat>0) & (b_mat<=M));
-            b=b_mat((a_mat>0) & (a_mat<=N) & (b_mat>0) & (b_mat<=M));
-            ind=sub2ind(size(H),b,a,r*ones(1,length(a)));
-            
-            H(ind) = H(ind)+1;
-        end
-    end
-    
-    
 end
 
 

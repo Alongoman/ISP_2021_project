@@ -28,7 +28,13 @@ display_img(img3,"function diamond in a box")
 %display_img(BW2,"function edge")
 
 
-
+%%
+%img = rgb2gray(img);
+img = imread("train\I6_train1.jpg");
+[rec, BW2] = seg6(img);
+img3 = insertShape(img,"Rectangle",rec);
+display_img(img3,"function diamond in a box");
+%display_img(BW2,"function edge")
 
 
 
