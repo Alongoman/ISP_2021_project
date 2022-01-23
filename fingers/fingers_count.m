@@ -3,7 +3,7 @@ clear all
 clc
 
 %% Read Image
-img=imread('bw.jpg');
+img=imread('3.jpeg');
 
 %% Show image
 figure(1)
