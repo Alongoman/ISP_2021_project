@@ -1,0 +1,64 @@
+%Config:
+clc
+clear
+close all
+
+warning('off');
+h.webcam=webcam('Microsoft® LifeCam HD-3000');
+img=snapshot(h.webcam);
+h.fig = figure('Name','The Visual Mouse',...
+    'Position', [150, 100, 1500, 1000],...
+    'NumberTitle','off');
+h.ax1 = subplot(2,1,1);
+h.ax1.Position = [0.1 0.4 0.7 0.5];
+sgtitle('The Visual Mouse', 'FontSize', 32);
+h.capture = uicontrol('style','pushbutton','string','capture',...
+    'Position',[1200, 500, 150, 80], 'FontSize',16);
+h.start = uicontrol('style','pushbutton','string','Start \ Restart',...
+    'Position',[1200, 600, 150, 80], 'FontSize',16);
+h.continue = uicontrol('style','pushbutton','string','Continue',...
+    'Position',[1200, 400, 150, 80], 'FontSize',16);
+h.wait = 1;
+guidata(h.fig,h);
+h.capture.Callback = {@capture_callback};
+h.start.Callback = {@start_callback};
+h.continue.Callback = {@continue_callback};
+
+function capture_callback(hObject, eventdata)
+    handles = guidata(hObject.Parent);
+    handles.start.Value = 0;
+    handles.wait = 0;
+    img=snapshot(handles.webcam);
+    imshow(img,[])
+    init_point = ginput(1);
+    handles = initial_bracelet_rep_hs(handles,hObject.Parent,img,init_point,'green');
+    [handles,first_time_hand_BB] = initial_hand_rep_hs(handles,hObject.Parent,img);
+    img2=insertShape(img,'Rectangle',handles.bracelet.BB,'Color','red','LineWidth',5);
+    img2=insertShape(img2,'Rectangle',first_time_hand_BB,'Color','blue','LineWidth',5);
+    imshow(img2,[])
+    pause(30);
+    guidata(hObject.Parent,handles);
+end
+
+function start_callback(hObject, eventdata)
+    handles = guidata(hObject.Parent);
+    figure(handles.fig);
+    axes(handles.ax1);
+    while handles.wait == 1
+        img=snapshot(handles.webcam);
+        imshow(img,[])
+        pause(0.01);
+        guidata(hObject.Parent,handles);
+    end
+end
+
+function continue_callback(hObject, eventdata)
+    handles = guidata(hObject.Parent);
+    img=(snapshot(handles.webcam));
+    [hue,sat,v]=rgb2hsv(img);
+    v_mask=(v<0.95).*(v>0.05);
+    handles.hand.old_BB=handles.hand.BB;
+    handles.bracelet.old_center=handles.bracelet.center;
+    [~,braclet_BB]=find_bracelet_hs(valid_mask.*hue,valid_mask.*sat,hue_low_th_br,hue_high_th_br,sat_low_th_br,sat_high_th_br,braclet_BB);
+    guidata(hObject.Parent,handles);
+end
