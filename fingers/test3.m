@@ -46,6 +46,8 @@ stats=regionprops(img,'Centroid');
 
 bw = edge(img);
 
+
+
 center_of_mass = stats(1).Centroid;
 x_cent = round(center_of_mass(1));
 y_cent = round(center_of_mass(2));
