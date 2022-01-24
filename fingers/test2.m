@@ -15,7 +15,7 @@ k = boundary(px,py);
 x = px(k);
 y = py(k);
 
-polygon = [x,y,circshift(x,1),circshift(y,1)];
+polygon = [x,y];
 filled_img = zeros(size(img));
 filled_img = insertShape(filled_img,'FilledPolygon',polygon);
 figure();imshow(filled_img,[]);
