@@ -1,0 +1,40 @@
+%Config:
+warning('off');
+cam=webcam(2);
+
+% Initial 
+img=snapshot(cam);
+frames=200;
+figure
+imshow(img,[])
+title("Point to the center of the bracelet");
+init_point = ginput(1);
+[bracelet_BB,hue_low_th_br,hue_high_th_br,sat_low_th_br,sat_high_th_br]= initial_bracelet_rep_hs(img,init_point);
+[BB,h_low_th_hand,h_high_th_hand,sat_low_th_hand,sat_high_th_hand]= initial_hand_rep_hs(bracelet_BB,img);
+figure
+priv_img = zeros(size())
+for i = 1:frames
+    img=(snapshot(cam));
+    [hue,sat,~]=rgb2hsv(img);
+    [~,braclet_BB]=find_bracelet_hs(hue,sat,hue_low_th_br,hue_high_th_br,sat_low_th_br,sat_high_th_br);
+    if braclet_BB(1)~=0
+        [mask,BB] = find_hand_hsv(braclet_BB,hue,sat,h_low_th_hand,h_high_th_hand,sat_low_th_hand,sat_high_th_hand);
+        center=[braclet_BB(1)+braclet_BB(3)/2 braclet_BB(2)+braclet_BB(4)/2]; 
+
+    end
+    img1=(snapshot(cam));
+    im1=rgb2gray(img1);
+    im=rgb2gray(img);
+    diff_im=abs(im-im1);
+    subplot(2,1,1)
+    imshow(mask,[])
+    subplot(2,1,2)
+    if BB(1)~=0
+        img2=insertShape(img,'Rectangle',BB,'Color','red','LineWidth',5);
+    end
+    imshow(uint8(diff_im),[])
+    hold on
+    plot(center(1),center(2),'b+','MarkerSize',15,'LineWidth',3)
+    hold off
+
+end
