@@ -5,6 +5,11 @@ else
     img = imbinarize(img);
 end
 
+if (isZero(img))
+    counts = 0;
+    return;
+end
+
 stats=regionprops(img,'Centroid');
 
 bw = edge(img);
@@ -41,5 +46,33 @@ counts = ceil(counts/2);
 
 % figure();imshow(g,[]);title(num2str(ceil(counts/2)));
 % figure();imshow(B,[]);title(num2str(ceil(counts/2)));
+
+end
+
+function out = isZero(img)
+[py,px] = find(img==1);
+k = boundary(px,py);
+
+x = px(k);
+y = py(k);
+
+polygon = [x,y];%,circshift(x,1),circshift(y,1)];
+filled_img = zeros(size(img));
+filled_img = imbinarize(rgb2gray(insertShape(filled_img,'FilledPolygon',polygon)));
+
+fill_ratio = sum(filled_img,'all')/sum(img,'all');
+if(fill_ratio>1.1)
+    out = 0;
+    return
+end
+stats=regionprops(img,'Centroid');
+center_of_mass = stats(1).Centroid;
+radii = vecnorm([px,py]-center_of_mass,2,2);
+max_ratio = max(radii)/mean(radii,'all');
+if(max_ratio>2.4)
+    out=0;
+    return
+end
+    out =1;
 
 end

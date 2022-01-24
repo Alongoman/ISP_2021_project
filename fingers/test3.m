@@ -35,7 +35,7 @@ c5 = count_fingers(o5)
 toc
 
 
-function counts = count_fingers(img)
+function counts = count_fingers2(img)
 if size(img,3)>1
     img = imbinarize(rgb2gray(img));
 else
