@@ -1,9 +1,10 @@
-function counts = count_fingers(img)
-if size(img,3)>1
-    img = imbinarize(rgb2gray(img));
-else
-    img = imbinarize(img);
-end
+ function counts = count_fingers(img)
+% if size(img,3)>1
+%     img = imbinarize(rgb2gray(img));
+% else
+%     img = imbinarize(img);
+% end
+try
 
 if (isZero(img))
     counts = 0;
@@ -36,6 +37,10 @@ intersect = A.*bw2;
 [g,counts] = bwlabel(intersect);
 counts = ceil(counts/2);
 
+catch
+    counts = 0;
+end
+
 % figure(1); imshow(img);title("orig");
 % figure(2);imshow(bw);
 % figure(3);imshow(bw2);
@@ -50,16 +55,13 @@ counts = ceil(counts/2);
 end
 
 function out = isZero(img)
-%tic
-var_th = 3e3;
+var_th = 2.8e3;
 
 [py,px] = find(img==1);
 stats=regionprops(img,'Centroid');
 center_of_mass = stats(1).Centroid;
 variance = mean(([px,py]-center_of_mass).^2,'all');
 if(variance>var_th)
-     disp("first out")
-    %toc
     out = 0;
     return
 end
@@ -77,8 +79,6 @@ filled_img = imbinarize(rgb2gray(insertShape(filled_img,'FilledPolygon',polygon)
 
 fill_ratio = sum(filled_img,'all')/sum(img,'all');
 if(fill_ratio>1.1)
-    disp("second out")
-    %toc
     out = 0;
     return
 end
@@ -93,8 +93,6 @@ end
 %     return
 % end
     out =1;
-        disp("third out")
-        %toc
 
 
 end
