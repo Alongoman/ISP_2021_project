@@ -39,6 +39,7 @@ count=0;
 
 %Main Loop
 while 1
+    handles = guidata(handles.fig);
     img=(snapshot(handles.webcam));
     [hue,sat,v]=rgb2hsv(img);
     v_mask=(v<0.95).*(v>0.05);
@@ -57,4 +58,5 @@ while 1
     else
         count=count+1
     end
+    guidata(handles.fig,handles);
 end
