@@ -1,4 +1,5 @@
-function handles = initial_bracelet_rep_hs(handles,img,point,color)
+function handles = initial_bracelet_rep_hs(handles,img,points,color)
+    point = points(1,:);
     h=250;
     w=250;
     err=0.5;

@@ -28,9 +28,9 @@ handles.start.Value = 0;
 handles.wait = 0;
 img=snapshot(handles.webcam);
 imshow(img,[], 'Parent', handles.ax1)
-init_point = ginput(1);
-handles = initial_bracelet_rep_hs(handles,img,init_point,'green');
-[handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img);
+init_points = ginput(2);
+handles = initial_bracelet_rep_hs(handles,img,init_points,'green');
+[handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img,init_points);
 img2=insertShape(img,'Rectangle',handles.bracelet.BB,'Color','red','LineWidth',5);
 img2=insertShape(img2,'Rectangle',first_time_hand_BB,'Color','blue','LineWidth',5);
 imshow(img2,[],'Parent', handles.ax1)

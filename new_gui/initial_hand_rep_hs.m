@@ -1,4 +1,4 @@
-function [handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img)
+function [handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img,points)
 %initial_hand_rep_hs finds the hand color limitation
 %   in order to find the hand in the image using color we first need to
 %   find the correct spectrum of the hand in the image, we do it repeatedly 
@@ -7,9 +7,10 @@ function [handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img)
 %   a lot to know if rthe original hand that was found is good, so using this
 %   parameter we can mark the location where the hand was found. 
 
-    err=2.25;  % the distance we accept from the mean, which is where the
+    err=1.95;  % the distance we accept from the mean, which is where the
 %   value is of size mean*exp(-err) the bigger it is the more the
 %   segmentation will include
+    point = floor(points(2,:));
     bracelet = handles.bracelet;
     [n,m]=size(img(:,:,1));
     hand.BB=adaptive_hand_BB(bracelet.BB,zeros(1,4));
@@ -17,64 +18,101 @@ function [handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img)
     Yh=min(hand.BB(2)+hand.BB(4),n);
     Xl=max(hand.BB(1),1);
     Xh=min(hand.BB(1)+hand.BB(3),m);
+    point(1)=point(1)-Xl;
+    point(2)=point(2)-Yl;
 
     [hue,sat,v]=rgb2hsv(img);
     hue_small=hue(Yl:Yh,Xl:Xh);sat_small=sat(Yl:Yh,Xl:Xh);v_small=v(Yl:Yh,Xl:Xh);
     % we have no need to search for the hand in the entire image, so we
     % chose a rectangle around the hand (we dont want to find the face)
 
-    value_mask=(v_small<0.95).*(v_small>0.05); %in regions where the 
+    value_mask=logical((v_small<0.97).*(v_small>0.03)); %in regions where the 
     % light is too strong or too weak the sturation and hue are not stable.  
-    tmp=value_mask.*sat_small; %so we ignore those areas.
+    tmp=sat_small; %so we ignore those areas.
 
-    x = tmp(:);
-    clust = kmeans(x,2); %here we assume that the hand sat is higher than the surroundings 
-    [miu_h1,sigma_h1]=normfit(x(clust==1));%we also assume that there are only 2 groups
-    % the hand and the background.
-    [miu_h2,sigma_h2]=normfit(x(clust==2));
-    if miu_h1>miu_h2
-        miu_h=miu_h1;sigma_h=sigma_h1;
-    else
-        miu_h=miu_h2;sigma_h=sigma_h2;
+    x = tmp(value_mask);
+    x_point=sat_small(point(2),point(1));
+    
+
+    AIC = zeros(1,4);
+    GMModels = cell(1,4);
+    options = statset('MaxIter',500);
+    for k = 2:4
+      GMModels{k} = fitgmdist(x,k,'Options',options,'CovarianceType','diagonal');
+      AIC(k)= GMModels{k}.AIC;
     end
+
+    [~,numComponents] = min(AIC);
+    gmodel = GMModels{numComponents};
+
+    Sigma=zeros(1,numComponents);
+    Mu=zeros(1,numComponents);
+    dist_vec=zeros(1,numComponents);
+    sigma=gmodel.Sigma;
+    for k=1:numComponents
+        Sigma(k)=sigma(:,:,k);
+        Mu(k)=gmodel.mu(k);
+        dist_vec(k)=abs(x_point-Mu(k));
+    end
+    [~,hand_k]=min(dist_vec);
+    miu_h=Mu(hand_k);sigma_h=Sigma(hand_k);
     
-    hand.sat_low_th = miu_h-sqrt(2*sigma_h^2*(err-0.5*log(2*pi*sigma_h^2)));
-    hand.sat_high_th = miu_h+sqrt(2*sigma_h^2*(err-0.5*log(2*pi*sigma_h^2)));
+    hand.sat_low_th = miu_h-sqrt(2*sigma_h*(err-0.5*log(2*pi*sigma_h)));
+    hand.sat_high_th = miu_h+sqrt(2*sigma_h*(err-0.5*log(2*pi*sigma_h)));
     
-    mask=logical((tmp>=hand.sat_low_th).*(tmp<=hand.sat_high_th));
+    mask=logical(value_mask.*(tmp>=hand.sat_low_th).*(tmp<=hand.sat_high_th));
 
     
     % Hue
-    tmp=value_mask.*hue_small;
+    tmp=hue_small;
     x = tmp(mask);%here we take the hue that are part of sat group (the hue of object with high sat)
-    clust = kmeans(x,2);
-    [miu_h1,sigma_h1]=normfit(x(clust==1));
-    [miu_h2,sigma_h2]=normfit(x(clust==2));
-    if miu_h1<miu_h2 %here we take the low hue
-        miu_h=miu_h1;sigma_h=sigma_h1;
-    else
-        miu_h=miu_h2;sigma_h=sigma_h2;
+    x_point=hue_small(point(2),point(1));
+
+    AIC = zeros(1,5);
+    GMModels = cell(1,5);
+    options = statset('MaxIter',500);
+    for k = 2:5
+      GMModels{k} = fitgmdist(x,k,'Options',options,'CovarianceType','diagonal');
+      AIC(k)= GMModels{k}.AIC;
     end
-    
-    hand.hue_low_th = miu_h-sqrt(2*sigma_h^2*(err-0.5*log(2*pi*sigma_h^2)));
-    hand.hue_high_th = miu_h+sqrt(2*sigma_h^2*(err-0.5*log(2*pi*sigma_h^2)));
+
+    [~,numComponents] = min(AIC);
+    gmodel = GMModels{numComponents};
+
+    Sigma=zeros(1,numComponents);
+    Mu=zeros(1,numComponents);
+    dist_vec=zeros(1,numComponents);
+    sigma=gmodel.Sigma;
+    for k=1:numComponents
+        Sigma(k)=sigma(:,:,k);
+        Mu(k)=gmodel.mu(k);
+        dist_vec(k)=abs(x_point-Mu(k));
+    end
+    [~,hand_k]=min(dist_vec);
+    miu_h=Mu(hand_k);sigma_h=Sigma(hand_k);
+    hand.hue_low_th = miu_h-sqrt(2*sigma_h*(err-0.5*log(2*pi*sigma_h)));
+    hand.hue_high_th = miu_h+sqrt(2*sigma_h*(err-0.5*log(2*pi*sigma_h)));
     
     mask=logical(mask.*(tmp>=hand.hue_low_th).*(tmp<=hand.hue_high_th));
 
-    % Sat again
-    tmp=value_mask.*sat_small;
+%     % Sat again
+    tmp=sat_small;
     x = tmp(mask);
-    clust = kmeans(x,2);
-    [miu_h1,sigma_h1]=normfit(x(clust==1));
-    [miu_h2,sigma_h2]=normfit(x(clust==2));
-    if miu_h1>miu_h2
+    x_point=sat_small(point(2),point(1));
+    gmodel=fitgmdist(x,2);
+    Sigma=gmodel.Sigma;
+    sigma_h1=Sigma(:,:,1);
+    sigma_h2=Sigma(:,:,2);
+    miu_h1=gmodel.mu(1);
+    miu_h2=gmodel.mu(2);
+    if normpdf(x_point,miu_h1,sigma_h1)>=normpdf(x_point,miu_h2,sigma_h2)
         miu_h=miu_h1;sigma_h=sigma_h1;
     else
         miu_h=miu_h2;sigma_h=sigma_h2;
     end
     
-    hand.sat_low_th = miu_h-sqrt(2*sigma_h^2*(err-0.5*log(2*pi*sigma_h^2)));
-    hand.sat_high_th = miu_h+sqrt(2*sigma_h^2*(err-0.5*log(2*pi*sigma_h^2)));
+    hand.sat_low_th = miu_h-sqrt(2*sigma_h*(err-0.5*log(2*pi*sigma_h)));
+    hand.sat_high_th = miu_h+sqrt(2*sigma_h*(err-0.5*log(2*pi*sigma_h)));
 
 
     handles.hand = hand;

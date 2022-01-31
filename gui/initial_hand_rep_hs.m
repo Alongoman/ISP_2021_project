@@ -1,7 +1,7 @@
 function [handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
-    err=2.25;
+    err=1.25;
     bracelet = handles.bracelet;
     [n,m]=size(img(:,:,1));
     hand.BB=adaptive_hand_BB(bracelet.BB,zeros(1,4));
@@ -16,52 +16,43 @@ function [handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img)
     tmp=value_mask.*sat_small;
 
     x = tmp(:);
-    clust = kmeans(x,2);
-    [miu_h1,sigma_h1]=normfit(x(clust==1));
-    [miu_h2,sigma_h2]=normfit(x(clust==2));
+    gmodel=fitgmdist(x,2);
+    Sigma=gmodel.Sigma;
+    sigma_h1=Sigma(:,:,1);
+    sigma_h2=Sigma(:,:,2);
+    miu_h1=gmodel.mu(1);
+    miu_h2=gmodel.mu(2);
     if miu_h1>miu_h2
         miu_h=miu_h1;sigma_h=sigma_h1;
     else
         miu_h=miu_h2;sigma_h=sigma_h2;
     end
     
-    hand.sat_low_th = miu_h-sqrt(2*sigma_h^2*(err-0.5*log(2*pi*sigma_h^2)));
-    hand.sat_high_th = miu_h+sqrt(2*sigma_h^2*(err-0.5*log(2*pi*sigma_h^2)));
+    hand.sat_low_th = miu_h-sqrt(2*sigma_h*(err-0.5*log(2*pi*sigma_h)));
+    hand.sat_high_th = miu_h+sqrt(2*sigma_h*(err-0.5*log(2*pi*sigma_h)));
     
     mask=logical((tmp>=hand.sat_low_th).*(tmp<=hand.sat_high_th));
     
     % Hue
     tmp=value_mask.*hue_small;
     x = tmp(mask);
-    clust = kmeans(x,2);
-    [miu_h1,sigma_h1]=normfit(x(clust==1));
-    [miu_h2,sigma_h2]=normfit(x(clust==2));
+    gmodel=fitgmdist(x,2);
+    Sigma=gmodel.Sigma;
+    sigma_h1=Sigma(:,:,1);
+    sigma_h2=Sigma(:,:,2);
+    miu_h1=gmodel.mu(1);
+    miu_h2=gmodel.mu(2);
     if miu_h1<miu_h2
         miu_h=miu_h1;sigma_h=sigma_h1;
     else
         miu_h=miu_h2;sigma_h=sigma_h2;
     end
     
-    hand.hue_low_th = miu_h-sqrt(2*sigma_h^2*(err-0.5*log(2*pi*sigma_h^2)));
-    hand.hue_high_th = miu_h+sqrt(2*sigma_h^2*(err-0.5*log(2*pi*sigma_h^2)));
+    hand.hue_low_th = miu_h-sqrt(2*sigma_h*(err-0.5*log(2*pi*sigma_h)));
+    hand.hue_high_th = miu_h+sqrt(2*sigma_h*(err-0.5*log(2*pi*sigma_h)));
     
-    % Sat again
-    tmp=value_mask.*sat_small;
-    x = tmp(mask);
-    clust = kmeans(x,2);
-    [miu_h1,sigma_h1]=normfit(x(clust==1));
-    [miu_h2,sigma_h2]=normfit(x(clust==2));
-    if miu_h1>miu_h2
-        miu_h=miu_h1;sigma_h=sigma_h1;
-    else
-        miu_h=miu_h2;sigma_h=sigma_h2;
-    end
-    
-    hand.sat_low_th = miu_h-sqrt(2*sigma_h^2*(err-0.5*log(2*pi*sigma_h^2)));
-    hand.sat_high_th = miu_h+sqrt(2*sigma_h^2*(err-0.5*log(2*pi*sigma_h^2)));
-
-
-
+    mask=logical(mask.*(tmp<=hand.hue_high_th).*(tmp>=hand.hue_low_th));
+   
     handles.hand = hand;
 
     tmpmask=logical((sat_small>=hand.sat_low_th).*(sat_small<=hand.sat_high_th).*(hue_small>=hand.hue_low_th).*(hue_small<=hand.hue_high_th));
