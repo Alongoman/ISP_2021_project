@@ -65,6 +65,7 @@ function handles = initial_bracelet_rep_hs(handles,img,points,color)
 %         x = x(clust==2);
 %     end
 %% Here We Calc the sat thresh
+    tmp_mask=logical(tmp_mask.*(hue>=bracelet.hue_low_th).*(hue<bracelet.hue_high_th));
     x = sat(tmp_mask);
     clust = kmeans(x,2);
     [miu_h1,sigma_h1]=normfit(x(clust==1));
