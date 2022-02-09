@@ -49,9 +49,39 @@ gui_handles.state = 0;
 set(gui_handles.bg, 'Visible', 'on');
 set(gui_handles.bg,'SelectedObject',gui_handles.start)
 guidata(gui_handles.fig,gui_handles);
-main_loop(gui_handles.fig,handles);
+[gui_handles, handles] = calibration_loop(gui_handles.fig,handles);
+main_loop(gui_handles, handles);
 
-function main_loop(parent,handles)
+function handles = main_loop(gui_handles,handles)
+    img=(snapshot(handles.webcam));
+    painter = zeros(size(img));
+    while 1
+        img=(snapshot(handles.webcam));
+        [hue,sat,v]=rgb2hsv(img);
+        v_mask=(v<0.95).*(v>0.05);
+        handles.hand.old_BB=handles.hand.BB;
+        handles=find_bracelet_hs(handles,v_mask.*hue,v_mask.*sat);
+        if handles.bracelet.BB(1)~=0
+            handles = find_hand_hsv(handles,v_mask.*hue,v_mask.*sat);
+            finger_num = count_fingers(handles.hand.mask);
+            painter = plot_on_img(painter, handles.bracelet.center, finger_num);
+            imshow(handles.hand.mask,[], 'Parent', gui_handles.ax2);
+            %drawnow;
+            if handles.hand.BB(1)~=0
+                img2=insertShape(img,'Rectangle',handles.hand.BB,'Color','red','LineWidth',5);
+            end
+            imshow(uint8(painter),[], 'Parent', gui_handles.ax1)
+            title("finger num:" + num2str(finger_num), 'FontSize',64)
+            hold on
+            plot(handles.bracelet.center(1),handles.bracelet.center(2),'b+','MarkerSize',15,'LineWidth',3);
+            hold off
+            drawnow;
+        end
+    end
+end
+
+
+function [gui_handles, handles] = calibration_loop(parent,handles)
     gui_handles = guidata(parent);
         while ~get(gui_handles.stop,'Value')
             gui_handles = guidata(parent);
@@ -65,7 +95,7 @@ function main_loop(parent,handles)
                         pause(0.1);
                     end
                 case 'Continue'
-                    handles = continue_function(gui_handles,handles);
+                    return;
                 case 'Stop'
                     closereq();
                     pause(0.1);
@@ -94,28 +124,3 @@ function handles = capture_function(gui_handles,handles)
 end
 
 
-function handles = continue_function(gui_handles,handles)
-    for i = 1:1
-        img=(snapshot(handles.webcam));
-        [hue,sat,v]=rgb2hsv(img);
-        v_mask=(v<0.95).*(v>0.05);
-        handles.hand.old_BB=handles.hand.BB;
-        handles=find_bracelet_hs(handles,v_mask.*hue,v_mask.*sat);
-        if handles.bracelet.BB(1)~=0
-            handles = find_hand_hsv(handles,v_mask.*hue,v_mask.*sat);
-            finger_num = count_fingers(handles.hand.mask);
-            
-            imshow(handles.hand.mask,[], 'Parent', gui_handles.ax2);
-            %drawnow;
-            if handles.hand.BB(1)~=0
-                img2=insertShape(img,'Rectangle',handles.hand.BB,'Color','red','LineWidth',5);
-            end
-            imshow(uint8(img2),[], 'Parent', gui_handles.ax1)
-            title("finger num:" + num2str(finger_num), 'FontSize',64)
-            hold on
-            plot(handles.bracelet.center(1),handles.bracelet.center(2),'b+','MarkerSize',15,'LineWidth',3);
-            hold off
-            drawnow;
-        end
-    end
-end
