@@ -73,12 +73,16 @@ function continue_callback(hObject, eventdata)
         handles=find_bracelet_hs(handles,hue,sat);
         if handles.bracelet.BB(1)~=0
             handles = find_hand_hsv(handles,v_mask.*hue,v_mask.*sat);
+            finger_num = count_fingers(handles.hand.mask);
+
             imshow(handles.hand.mask,[],'Parent', handles.ax2);
             drawnow;
             if handles.hand.BB(1)~=0
                 img2=insertShape(img,'Rectangle',handles.hand.BB,'Color','red','LineWidth',5);
             end
             imshow(uint8(img2),[],'Parent', handles.ax1)
+                        title("finger num:" + num2str(finger_num), 'FontSize',64)
+
             hold on
             plot(handles.bracelet.center(1),handles.bracelet.center(2),'b+','MarkerSize',15,'LineWidth',3)
             hold off
