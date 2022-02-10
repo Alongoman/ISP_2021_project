@@ -53,8 +53,12 @@ guidata(gui_handles.fig,gui_handles);
 main_loop(gui_handles, handles);
 
 function handles = main_loop(gui_handles,handles)
+    figure(1);
+    finger_history_len = 5;
+    finger_history = zeros(1,finger_history_len);
     img=(snapshot(handles.webcam));
-    painter = zeros(size(img));
+    painter = ones(size(img));
+    disp(size(painter))
     while 1
         img=(snapshot(handles.webcam));
         [hue,sat,v]=rgb2hsv(img);
@@ -64,14 +68,19 @@ function handles = main_loop(gui_handles,handles)
         if handles.bracelet.BB(1)~=0
             handles = find_hand_hsv(handles,v_mask.*hue,v_mask.*sat);
             finger_num = count_fingers(handles.hand.mask);
-            painter = plot_on_img(painter, handles.bracelet.center, finger_num);
-            imshow(handles.hand.mask,[], 'Parent', gui_handles.ax2);
+            finger_history = circshift(finger_history,1);
+            finger_history(1) = finger_num;
+            finger_num = mode(finger_history);
+            painter = plot_on_image(painter, handles.bracelet.center, finger_num);
+%             imshow(handles.hand.mask,[], 'Parent', gui_handles.ax2);
             %drawnow;
-            if handles.hand.BB(1)~=0
-                img2=insertShape(img,'Rectangle',handles.hand.BB,'Color','red','LineWidth',5);
-            end
-            imshow(uint8(painter),[], 'Parent', gui_handles.ax1)
-            title("finger num:" + num2str(finger_num), 'FontSize',64)
+%             if handles.hand.BB(1)~=0
+%                 img2=insertShape(img,'Rectangle',handles.hand.BB,'Color','red','LineWidth',5);
+%             end
+            %imshow(uint8(painter),[], 'Parent', gui_handles.ax1)
+            imshow(painter,[])
+
+            title("finger num:" + num2str(finger_num), 'FontSize',20)
             hold on
             plot(handles.bracelet.center(1),handles.bracelet.center(2),'b+','MarkerSize',15,'LineWidth',3);
             hold off
@@ -95,6 +104,7 @@ function [gui_handles, handles] = calibration_loop(parent,handles)
                         pause(0.1);
                     end
                 case 'Continue'
+                    close(gui_handles.fig)
                     return;
                 case 'Stop'
                     closereq();
