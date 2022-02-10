@@ -8,7 +8,7 @@ function [handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img,points)
 %   parameter we can mark the location where the hand was found. 
 
     err=2;
-    err1=4;
+    err1=3;
     % the distance we accept from the mean, which is where the
 %   value is of size mean*exp(-err) the bigger it is the more the
 %   segmentation will include

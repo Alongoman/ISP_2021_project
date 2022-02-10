@@ -11,15 +11,15 @@
 % %set(vid,'ReturnedColorSpace','grayscale');
 % %preview(vid);
 % while 1
-function num = bwfingers(frame)
-    dntshw=false;
+function num = bwfingers(out)
+%     dntshw=false;
 %     pause(.001);
     %acquireimage from webcam
     %capture frame
 %     frame = step(vid);
     %Read the image, and capture the dimensions
-    img=uint8(255*frame);
-    out=skinDetect2Func(img);
+%     out=uint8(255*frame);
+%     out=skinDetect2Func(img);
     stats=regionprops(out,'Centroid');
     if ~isempty(stats)
         cx=stats.Centroid(1);

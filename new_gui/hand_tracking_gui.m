@@ -2,11 +2,19 @@
 clc
 clear
 close all
-
+pc_cam = 'FaceTime HD Camera (Built-in)';
+cur_cam = 'FaceTime HD Camera (Built-in)';
 warning('off');
-handles.webcam=webcam('Microsoft® LifeCam HD-3000');
+
+handles.webcam=webcam(cur_cam);
+if(cur_cam == pc_cam)
+    pause(1);
+end
 handles.wait_for_continue = 0;
-img=snapshot(handles.webcam);
+img= snapshot(handles.webcam);
+% if(cur_cam ==pc_cam )
+%     pause(2);
+% end
 gui_handles.fig = figure('Name','The Visual Mouse',...
     'Position', [150, 100, 1500, 1000],...
     'NumberTitle','off');
@@ -23,7 +31,7 @@ gui_handles.bg = uibuttongroup('Parent',gui_handles.fig,...
                                     'Position',[1250,500,201,251]);
 gui_handles.start = uicontrol(gui_handles.bg,...
                        'Style','radiobutton',...
-                       'String','Start / Restart',...
+                       'String','Restart',...
                        'Position',[13,161,191,41],...
                        'FontSize',16,...
                        'HandleVisibility','on');
@@ -35,7 +43,7 @@ gui_handles.capture = uicontrol(gui_handles.bg,...
                        'HandleVisibility','on');
 gui_handles.continue = uicontrol(gui_handles.bg,...
                        'Style','radiobutton',...
-                       'String','Continue',...
+                       'String','Start',...
                        'Position',[13,61,191,41],...
                        'FontSize',16,...
                        'HandleVisibility','on');
@@ -53,13 +61,17 @@ guidata(gui_handles.fig,gui_handles);
 main_loop(gui_handles, handles);
 
 function handles = main_loop(gui_handles,handles)
-    figure(1);
+    fh = figure(1);
     finger_history_len = 5;
     finger_history = zeros(1,finger_history_len);
-    img=(snapshot(handles.webcam));
-    painter = ones(size(img));
-    disp(size(painter))
+    img=snapshot(handles.webcam);
+    [img_height, img_width ,spectrum] = size(img);
+    board = ones(img_height, img_width,3);
+    imshow(board,[])
+    fh.WindowState = 'maximized';
+
     while 1
+        try
         img=(snapshot(handles.webcam));
         [hue,sat,v]=rgb2hsv(img);
         v_mask=(v<0.95).*(v>0.05);
@@ -67,24 +79,39 @@ function handles = main_loop(gui_handles,handles)
         handles=find_bracelet_hs(handles,v_mask.*hue,v_mask.*sat);
         if handles.bracelet.BB(1)~=0
             handles = find_hand_hsv(handles,v_mask.*hue,v_mask.*sat);
-            finger_num = count_fingers(handles.hand.mask);
+            [finger_num, center_of_mass] = count_fingers(handles.hand.mask);
+%             finger_num = bwfingers(handles.hand.mask);
+
             finger_history = circshift(finger_history,1);
             finger_history(1) = finger_num;
             finger_num = mode(finger_history);
-            painter = plot_on_image(painter, handles.bracelet.center, finger_num);
+            [px, py] = scale_pointer(center_of_mass(1),center_of_mass(2),img_width, img_height);
+            px = img_width - px;
+            board = painter(board, [px,py], finger_num);
 %             imshow(handles.hand.mask,[], 'Parent', gui_handles.ax2);
             %drawnow;
 %             if handles.hand.BB(1)~=0
 %                 img2=insertShape(img,'Rectangle',handles.hand.BB,'Color','red','LineWidth',5);
 %             end
             %imshow(uint8(painter),[], 'Parent', gui_handles.ax1)
-            imshow(painter,[])
+            subplot(2,1,1)
+            imshow(board(:,floor(img_width/2):end,:),[])
+           
 
-            title("finger num:" + num2str(finger_num), 'FontSize',20)
+            title("finger num:" + num2str(finger_num), 'FontSize',30)
             hold on
-            plot(handles.bracelet.center(1),handles.bracelet.center(2),'b+','MarkerSize',15,'LineWidth',3);
+            plot(px,py,'b+','MarkerSize',15,'LineWidth',3);
             hold off
-            drawnow;
+            subplot(2,1,2)
+            imshow(flip(handles.hand.mask,2),[]);
+            fh.WindowState = 'maximized';
+
+            %drawnow;
+        end
+        catch e
+            disp(e)
+            disp(e.stack(1))
+            title("error detected",'FontSize',30,'Color','red');
         end
     end
 end
@@ -95,7 +122,7 @@ function [gui_handles, handles] = calibration_loop(parent,handles)
         while ~get(gui_handles.stop,'Value')
             gui_handles = guidata(parent);
             switch gui_handles.bg.SelectedObject.String
-                case 'Start / Restart'
+                case 'Restart'
                     handles = start_function(gui_handles,handles);
                 case 'Capture'
                     if ~handles.wait_for_continue
@@ -103,7 +130,7 @@ function [gui_handles, handles] = calibration_loop(parent,handles)
                     else
                         pause(0.1);
                     end
-                case 'Continue'
+                case 'Start'
                     close(gui_handles.fig)
                     return;
                 case 'Stop'
@@ -114,14 +141,14 @@ function [gui_handles, handles] = calibration_loop(parent,handles)
 end
 
 function handles = start_function(gui_handles,handles)
-    img=snapshot(handles.webcam);
+    img=flip(snapshot(handles.webcam),2);
     imshow(img,[],'Parent', gui_handles.ax1);
     drawnow;
     handles.wait_for_continue = 0;
 end
 
 function handles = capture_function(gui_handles,handles)
-    img=snapshot(handles.webcam);
+    img=flip(snapshot(handles.webcam),2);
     imshow(img,[], 'Parent', gui_handles.ax1)
     init_points = ginput(2);
     handles = initial_bracelet_rep_hs(handles,img,init_points,'green');
@@ -133,4 +160,18 @@ function handles = capture_function(gui_handles,handles)
     handles.wait_for_continue = 1;
 end
 
+function [x,y] = scale_pointer(px,py,size_x,size_y)
+y = py;
+x = px;
+sizing_factor_x = 3;
+sizing_factor_y = 3;
 
+img_center_y = floor(size_y/2);
+img_center_x = floor(size_x/2);
+
+x = sizing_factor_x*px;
+y = sizing_factor_y*py ;
+
+x = min([x,size_x]);
+y = min([y,size_y]);
+end

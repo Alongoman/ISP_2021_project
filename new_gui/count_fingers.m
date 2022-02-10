@@ -1,17 +1,34 @@
-function counts = count_fingers(img)
+% img = imread("A5.jpeg");
+% c = count_fingers1(img)
+
+
+
+
+
+
+function [counts, center_of_mass] = count_fingers(img)
 img = uint8(img);
-if size(img,3)>1
+[n,m,k] = size(img);
+center_of_mass = [floor(n/2), floor(m/2)];
+if k > 1
     img = imbinarize(rgb2gray(img));
 else
     img = imbinarize(img);
 end
 
-if (isZero(img))
+stats=regionprops(img,'Centroid');
+
+
+try
+if (isZero(img,stats))
     counts = 0;
     return;
 end
-
-stats=regionprops(img,'Centroid');
+catch e
+    disp(e)
+    counts = -1;
+    return;
+end
 
 bw = edge(img);
 
@@ -21,13 +38,13 @@ y_cent = round(center_of_mass(2));
 
 % remove all below center
 bw2 = bw;
-bw2(y_cent:end,:) = 0;
+% bw2(y_cent:end,:) = 0;
 
 
 %find radius
 [py,px] = find(bw2==1);
-points = vecnorm([px,py]-center_of_mass,2,2);
-r = ceil(max(points)/2)*1.2;
+radii = vecnorm([px,py]-center_of_mass,2,2);
+r = ceil(max(radii)/2)*1.2;
 
 I = zeros(size(bw2));
 A = rgb2gray(insertShape(I,'circle',[x_cent,y_cent,r],'LineWidth',1));
@@ -35,7 +52,7 @@ A = rgb2gray(insertShape(I,'circle',[x_cent,y_cent,r],'LineWidth',1));
 intersect = A.*bw2;
 % counts = ceil((sum(intersect,'all'))/2);
 [g,counts] = bwlabel(intersect);
-counts = ceil(counts/2);
+counts = ceil(counts/2) - 1;
 
 % figure(1); imshow(img);title("orig");
 % figure(2);imshow(bw);
@@ -44,18 +61,20 @@ counts = ceil(counts/2);
 % figure(5);imshow(A.*bw2,[]);title("masked");
 
 % B = rgb2gray(insertShape(uint8(255*bw2),'circle',[x_cent,y_cent,r],'LineWidth',1));
-
+% 
 % figure();imshow(g,[]);title(num2str(ceil(counts/2)));
 % figure();imshow(B,[]);title(num2str(ceil(counts/2)));
 
+counts = min(counts,5);
+
 end
 
-function out = isZero(img)
+function out = isZero(img, stats)
 %tic
-var_th = 3e3;
+
+var_th = 500;
 
 [py,px] = find(img==1);
-stats=regionprops(img,'Centroid');
 center_of_mass = stats(1).Centroid;
 variance = mean(([px,py]-center_of_mass).^2,'all');
 if(variance>var_th)
