@@ -141,14 +141,14 @@ function [gui_handles, handles] = calibration_loop(parent,handles)
 end
 
 function handles = start_function(gui_handles,handles)
-    img=flip(snapshot(handles.webcam),2);
+    img=snapshot(handles.webcam);
     imshow(img,[],'Parent', gui_handles.ax1);
     drawnow;
     handles.wait_for_continue = 0;
 end
 
 function handles = capture_function(gui_handles,handles)
-    img=flip(snapshot(handles.webcam),2);
+    img=snapshot(handles.webcam);
     imshow(img,[], 'Parent', gui_handles.ax1)
     init_points = ginput(2);
     handles = initial_bracelet_rep_hs(handles,img,init_points,'green');
