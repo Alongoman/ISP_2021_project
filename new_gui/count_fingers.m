@@ -7,6 +7,8 @@
 
 
 function [counts, center_of_mass] = count_fingers(img)
+                                                
+
 img = uint8(img);
 [n,m,k] = size(img);
 center_of_mass = [floor(n/2), floor(m/2)];
@@ -20,15 +22,17 @@ stats=regionprops(img,'Centroid');
 
 
 try
-if (isZero(img,stats))
-    counts = 0;
-    return;
-end
+%if (isZero(img,stats))
+
+%    counts = 0;
+ %   return;
+%end
 catch e
     disp(e)
     counts = -1;
     return;
 end
+
 
 bw = edge(img);
 
@@ -70,20 +74,22 @@ counts = min(counts,5);
 end
 
 function out = isZero(img, stats)
-%tic
 
-var_th = 500;
+
+var_th = 3e3;
 
 [py,px] = find(img==1);
 center_of_mass = stats(1).Centroid;
 variance = mean(([px,py]-center_of_mass).^2,'all');
 if(variance>var_th)
-     %disp("first out")
-    %toc
+    
     out = 0;
     return
 end
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    out =1;
+return;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 k = boundary(px,py);
 
@@ -97,24 +103,25 @@ filled_img = imbinarize(rgb2gray(insertShape(filled_img,'FilledPolygon',polygon)
 
 fill_ratio = sum(filled_img,'all')/sum(img,'all');
 if(fill_ratio>1.1)
-    %disp("second out")
-    %toc
+    
     out = 0;
     return
 end
+
+    
 % stats=regionprops(img,'Centroid');
 % center_of_mass = stats(1).Centroid;
 % radii = vecnorm([px,py]-center_of_mass,2,2);
 % max_ratio = max(radii)/mean(radii,'all');
 % if(max_ratio>2.4)
 %     disp("second out")
-%     toc
+%     
 %     out=0;
 %     return
 % end
     out =1;
         %disp("third out")
-        %toc
+        %
 
 
 end

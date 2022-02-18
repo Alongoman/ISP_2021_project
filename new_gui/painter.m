@@ -13,7 +13,7 @@ y = center(2);
 %color_array = ["black","yellow","cyan","magenta","blue","white","black"];
 color_vec = reshape(color_array(finger_num,:),[1,1,3]);
 if color_vec == [1,1,1]
-    r = r*4;
+    r = r*5;
 end
 a = uint16(max(x-r,1));
 b = uint16(min(r+x,size(img,2)));

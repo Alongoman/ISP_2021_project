@@ -2,8 +2,9 @@
 clc
 clear
 close all
-pc_cam = 'FaceTime HD Camera (Built-in)';
-cur_cam = 'FaceTime HD Camera (Built-in)';
+pc_cam = "FaceTime HD Camera (Built-in)";
+microsoft_cam = "Microsoft® LifeCam HD-3000";
+cur_cam = microsoft_cam;
 warning('off');
 
 handles.webcam=webcam(cur_cam);
@@ -61,17 +62,20 @@ guidata(gui_handles.fig,gui_handles);
 main_loop(gui_handles, handles);
 
 function handles = main_loop(gui_handles,handles)
-    fh = figure(1);
     finger_history_len = 5;
     finger_history = zeros(1,finger_history_len);
     img=snapshot(handles.webcam);
     [img_height, img_width ,spectrum] = size(img);
     board = ones(img_height, img_width,3);
-    imshow(board,[])
+    fh = figure(1);
     fh.WindowState = 'maximized';
+
+    imshow(board,[])
+    
 
     while 1
         try
+        
         img=(snapshot(handles.webcam));
         [hue,sat,v]=rgb2hsv(img);
         v_mask=(v<0.95).*(v>0.05);
@@ -79,11 +83,12 @@ function handles = main_loop(gui_handles,handles)
         handles=find_bracelet_hs(handles,v_mask.*hue,v_mask.*sat);
         if handles.bracelet.BB(1)~=0
             handles = find_hand_hsv(handles,v_mask.*hue,v_mask.*sat);
+
             [finger_num, center_of_mass] = count_fingers(handles.hand.mask);
-%             finger_num = bwfingers(handles.hand.mask);
 
             finger_history = circshift(finger_history,1);
             finger_history(1) = finger_num;
+
             finger_num = mode(finger_history);
             [px, py] = scale_pointer(center_of_mass(1),center_of_mass(2),img_width, img_height);
             px = img_width - px;
@@ -94,19 +99,28 @@ function handles = main_loop(gui_handles,handles)
 %                 img2=insertShape(img,'Rectangle',handles.hand.BB,'Color','red','LineWidth',5);
 %             end
             %imshow(uint8(painter),[], 'Parent', gui_handles.ax1)
-            subplot(2,1,1)
-            imshow(board(:,floor(img_width/2):end,:),[])
+            
+
+            subplot(2,2,[1,3])
+            imshow(board(1:floor(img_height*2/3),:,:),[])
            
 
             title("finger num:" + num2str(finger_num), 'FontSize',30)
             hold on
             plot(px,py,'b+','MarkerSize',15,'LineWidth',3);
             hold off
-            subplot(2,1,2)
-            imshow(flip(handles.hand.mask,2),[]);
-            fh.WindowState = 'maximized';
+            [mask_height,mask_width] = size(handles.hand.mask);
+            pad_mask = handles.hand.mask;%padarray(handles.hand.mask,max(0,500-mask_height),max(0,500-mask_width));
+            subplot(2,2,4)
+            imshow(flip(pad_mask,2),[]);
+             fh.WindowState = 'maximized';
 
-            %drawnow;
+
+
+
+
+
+
         end
         catch e
             disp(e)
@@ -163,15 +177,15 @@ end
 function [x,y] = scale_pointer(px,py,size_x,size_y)
 y = py;
 x = px;
-sizing_factor_x = 3;
-sizing_factor_y = 3;
+sizing_factor_x = 1.5;
+sizing_factor_y = 2;
 
-img_center_y = floor(size_y/2);
 img_center_x = floor(size_x/2);
+img_center_y = floor(size_y/2);
 
-x = sizing_factor_x*px;
-y = sizing_factor_y*py ;
+% x = img_center_x + sizing_factor_x*(px - img_center_x);
+y = img_center_y + sizing_factor_y*(py - img_center_y) ;
 
-x = min([x,size_x]);
-y = min([y,size_y]);
+x = max(0, min([x,size_x]));
+y = max(0, min([y,size_y]));
 end
