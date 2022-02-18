@@ -48,7 +48,8 @@ bw2 = bw;
 %find radius
 [py,px] = find(bw2==1);
 radii = vecnorm([px,py]-center_of_mass,2,2);
-r = ceil(max(radii)/2)*1.2;
+r_orig = max(radii);
+r = ceil(r_orig/2)*1.2;
 
 I = zeros(size(bw2));
 A = rgb2gray(insertShape(I,'circle',[x_cent,y_cent,r],'LineWidth',1));
@@ -59,14 +60,23 @@ intersect = A.*bw2;
 counts = ceil(counts/2) - 1;
 
 if(counts~=5)
-var_th = 600;
-
-[py,px] = find(img==1);
-center_of_mass = stats(1).Centroid;
-variance = mean(([px,py]-center_of_mass).^2,'all');
-if(variance<var_th)
-    counts=0;
+fill_ratio = sum(img,"all")/(r_orig^2);
+if fill_ratio < 1.1
+    counts = 0;
 end
+end
+
+    
+    
+    
+% var_th = 600;
+% 
+% [py,px] = find(img==1);
+% center_of_mass = stats(1).Centroid;
+% variance = mean(([px,py]-center_of_mass).^2,'all');
+% if(variance<var_th)
+%     counts=0;
+% end
 end
 
 % figure(1); imshow(img);title("orig");
