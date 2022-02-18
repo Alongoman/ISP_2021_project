@@ -58,6 +58,17 @@ intersect = A.*bw2;
 [g,counts] = bwlabel(intersect);
 counts = ceil(counts/2) - 1;
 
+if(counts~=5)
+var_th = 600;
+
+[py,px] = find(img==1);
+center_of_mass = stats(1).Centroid;
+variance = mean(([px,py]-center_of_mass).^2,'all');
+if(variance<var_th)
+    counts=0;
+end
+end
+
 % figure(1); imshow(img);title("orig");
 % figure(2);imshow(bw);
 % figure(3);imshow(bw2);

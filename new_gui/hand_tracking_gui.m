@@ -4,7 +4,7 @@ clear
 close all
 pc_cam = "FaceTime HD Camera (Built-in)";
 microsoft_cam = "Microsoft® LifeCam HD-3000";
-cur_cam = microsoft_cam;
+cur_cam = pc_cam;
 warning('off');
 
 handles.webcam=webcam(cur_cam);
