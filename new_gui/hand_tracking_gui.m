@@ -4,7 +4,7 @@ clear
 close all
 pc_cam = "FaceTime HD Camera (Built-in)";
 microsoft_cam = "Microsoft® LifeCam HD-3000";
-cur_cam = microsoft_cam;
+cur_cam = pc_cam;
 warning('off');
 
 handles.webcam=webcam(cur_cam);
@@ -62,7 +62,7 @@ guidata(gui_handles.fig,gui_handles);
 main_loop(gui_handles, handles);
 
 function handles = main_loop(gui_handles,handles)
-finger_history_len = 7;
+finger_history_len = 15;
 finger_history = zeros(1,finger_history_len);
 img=snapshot(handles.webcam);
 [img_height, img_width ,spectrum] = size(img);
@@ -84,7 +84,7 @@ while 1
         
         img=(snapshot(handles.webcam));
         [hue,sat,v]=rgb2hsv(img);
-        v_mask=(v<0.95).*(v>0.05);
+        v_mask=(v<0.95).*(v>0.15);
         handles.hand.old_BB=handles.hand.BB;
         handles=find_bracelet_hs(handles,v_mask.*hue,v_mask.*sat);
         if handles.bracelet.BB(1)~=0

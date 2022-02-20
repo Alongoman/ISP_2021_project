@@ -59,7 +59,7 @@ intersect = A.*bw2;
 [g,counts] = bwlabel(intersect);
 counts = ceil(counts/2) - 1;
 
-if(counts~=5)
+if(counts<5)
 fill_ratio = (r_orig^2)/sum(img,"all");
 if fill_ratio < 0.70
     counts = 0;
@@ -90,7 +90,7 @@ end
 % figure();imshow(g,[]);title(num2str(ceil(counts/2)));
 % figure();imshow(B,[]);title(num2str(ceil(counts/2)));
 
-counts = min(counts,5);
+% counts = min(counts,5);
 
 end
 

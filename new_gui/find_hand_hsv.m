@@ -19,7 +19,12 @@ function handles = find_hand_hsv(handles,hue,sat)
     tmpmask=imdilate(tmpmask,[se90 se0]);%changed
     tmpmask=bwareafilt(tmpmask,1,"largest");
     tmpmask=imfill(tmpmask,'holes');
+    
 
+    tmpmask=imdilate(tmpmask,[se90 se0]);%changed
+    tmpmask=imfill(tmpmask,'holes');
+    
+    
     %mask(Yl:Yh,Xl:Xh)=tmpmask;
     hand.mask = tmpmask;
     hand.BB = BB;

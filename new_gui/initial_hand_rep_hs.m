@@ -7,8 +7,8 @@ function [handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img,points)
 %   a lot to know if rthe original hand that was found is good, so using this
 %   parameter we can mark the location where the hand was found. 
 
-    err=2;
-    err1=3;
+    err=0.1;
+    err1=0.1;
     % the distance we accept from the mean, which is where the
 %   value is of size mean*exp(-err) the bigger it is the more the
 %   segmentation will include
@@ -28,18 +28,18 @@ function [handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img,points)
     % we have no need to search for the hand in the entire image, so we
     % chose a rectangle around the hand (we dont want to find the face)
 
-    value_mask=logical((v_small<0.97).*(v_small>0.03)); %in regions where the 
+    value_mask=logical((v_small>0.05));%.*(v_small<0.97)); %in regions where the 
     % light is too strong or too weak the sturation and hue are not stable.  
-    tmp=sat_small; %so we ignore those areas.
 
     x = [hue_small(value_mask) sat_small(value_mask)];
     x_point=[hue_small(point(2),point(1));sat_small(point(2),point(1))];
     
+    num_of_obj=5;
 
-    AIC = zeros(1,4);
-    GMModels = cell(1,4);
+    AIC = zeros(1,num_of_obj);
+    GMModels = cell(1,num_of_obj);
     options = statset('MaxIter',500);
-    for k = 2:4
+    for k = 2:num_of_obj
       GMModels{k} = fitgmdist(x,k,'Options',options,'CovarianceType','diagonal');
       AIC(k)= GMModels{k}.AIC;
     end
@@ -142,6 +142,5 @@ function [handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img,points)
     
     first_time_hand_BB = uint16(rec_params);
    
-
 end
 
