@@ -4,15 +4,15 @@ clear
 close all
 pc_cam = "FaceTime HD Camera (Built-in)";
 microsoft_cam = "Microsoft® LifeCam HD-3000";
-cur_cam = microsoft_cam;
+cur_cam = pc_cam;
 warning('off');
-camera='Microsoft® LifeCam HD-3000';
-handles.webcam=webcam(camera);
+handles.webcam=webcam(cur_cam);
+if(cur_cam ==pc_cam )
+    pause(1);
+end
 handles.wait_for_continue = 0;
 img= snapshot(handles.webcam);
-% if(cur_cam ==pc_cam )
-%     pause(2);
-% end
+
 gui_handles.fig = figure('Name','The Visual Mouse',...
     'Position', [150, 100, 1500, 1000],...
     'NumberTitle','off');
