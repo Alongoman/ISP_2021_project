@@ -1,4 +1,4 @@
-function [handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img,points)
+function [handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img,points, isLeft)
 %initial_hand_rep_hs finds the hand color limitation
 %   in order to find the hand in the image using color we first need to
 %   find the correct spectrum of the hand in the image, we do it repeatedly 
@@ -15,13 +15,14 @@ function [handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img,points)
     point = floor(points(2,:));
     bracelet = handles.bracelet;
     [n,m]=size(img(:,:,1));
-    hand.BB=adaptive_hand_BB(bracelet.BB,zeros(1,4));
+    hand.BB=adaptive_hand_BB(bracelet.BB,zeros(1,4), isLeft);
     Yl=max(hand.BB(2),1);
     Yh=min(hand.BB(2)+hand.BB(4),n);
     Xl=max(hand.BB(1),1);
     Xh=min(hand.BB(1)+hand.BB(3),m);
     point(1)=point(1)-Xl;
     point(2)=point(2)-Yl;
+    [point(1),point(2)] = make_valid(point(1),point(2), m,n);
 
     [hue,sat,v]=rgb2hsv(img);
     hue_small=hue(Yl:Yh,Xl:Xh);sat_small=sat(Yl:Yh,Xl:Xh);v_small=v(Yl:Yh,Xl:Xh);

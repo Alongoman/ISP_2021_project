@@ -29,16 +29,22 @@ gui_handles.bg = uibuttongroup('Parent',gui_handles.fig,...
     'Title','States:',...
     'Units','pixels',...
     'FontSize',16,...
-    'Position',[1250,500,201,251]);
+    'Position',[1250,500,201,280]);
 gui_handles.start = uicontrol(gui_handles.bg,...
     'Style','radiobutton',...
     'String','Restart',...
+    'Position',[13,211,191,41],...
+    'FontSize',16,...
+    'HandleVisibility','on');
+gui_handles.captureLeft = uicontrol(gui_handles.bg,...
+    'Style','radiobutton',...
+    'String','Capture lefthand',...
     'Position',[13,161,191,41],...
     'FontSize',16,...
     'HandleVisibility','on');
-gui_handles.capture = uicontrol(gui_handles.bg,...
+gui_handles.captureRight = uicontrol(gui_handles.bg,...
     'Style','radiobutton',...
-    'String','Capture',...
+    'String','Capture righthand',...
     'Position',[13,111,191,41],...
     'FontSize',16,...
     'HandleVisibility','on');
@@ -62,7 +68,8 @@ guidata(gui_handles.fig,gui_handles);
 main_loop(gui_handles, handles);
 
 function handles = main_loop(gui_handles,handles)
-finger_history_len = 15;
+isLeft = handles.isLeft;
+finger_history_len = 7;
 finger_history = zeros(1,finger_history_len);
 img=snapshot(handles.webcam);
 [img_height, img_width ,spectrum] = size(img);
@@ -84,11 +91,11 @@ while 1
         
         img=(snapshot(handles.webcam));
         [hue,sat,v]=rgb2hsv(img);
-        v_mask=(v<0.95).*(v>0.15);
+        v_mask=(v<0.95).*(v>0.05);
         handles.hand.old_BB=handles.hand.BB;
         handles=find_bracelet_hs(handles,v_mask.*hue,v_mask.*sat);
         if handles.bracelet.BB(1)~=0
-            handles = find_hand_hsv(handles,v_mask.*hue,v_mask.*sat);
+            handles = find_hand_hsv(handles,v_mask.*hue,v_mask.*sat, isLeft);
             
             [finger_num, center_of_mass] = count_fingers(handles.hand.mask);
             BB_hand = handles.hand.BB;
@@ -159,9 +166,19 @@ while ~get(gui_handles.stop,'Value')
     switch gui_handles.bg.SelectedObject.String
         case 'Restart'
             handles = start_function(gui_handles,handles);
-        case 'Capture'
+        case 'Capture righthand'
+            isLeft = false;
             if ~handles.wait_for_continue
-                handles = capture_function(gui_handles,handles);
+                handles = capture_function(gui_handles,handles,isLeft);
+                handles.isLeft = isLeft;
+            else
+                pause(0.1);
+            end
+        case 'Capture lefthand'
+            isLeft = true;
+            if ~handles.wait_for_continue
+                handles = capture_function(gui_handles,handles,isLeft);
+                handles.isLeft = isLeft;
             else
                 pause(0.1);
             end
@@ -182,12 +199,13 @@ drawnow;
 handles.wait_for_continue = 0;
 end
 
-function handles = capture_function(gui_handles,handles)
+function handles = capture_function(gui_handles,handles, isLeft)
+
 img=snapshot(handles.webcam);
 imshow(img,[], 'Parent', gui_handles.ax1)
 init_points = ginput(2);
 handles = initial_bracelet_rep_hs(handles,img,init_points,'green');
-[handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img,init_points);
+[handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img,init_points, isLeft);
 img2=insertShape(img,'Rectangle',handles.bracelet.BB,'Color','red','LineWidth',5);
 img2=insertShape(img2,'Rectangle',first_time_hand_BB,'Color','blue','LineWidth',5);
 imshow(img2,[],'Parent', gui_handles.ax1)

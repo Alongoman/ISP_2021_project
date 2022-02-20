@@ -1,9 +1,9 @@
-function handles = find_hand_hsv(handles,hue,sat)
+function handles = find_hand_hsv(handles,hue,sat, isLeft)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
     bracelet = handles.bracelet;
     hand = handles.hand;
-    BB=adaptive_hand_BB(bracelet.BB,hand.BB);
+    BB=adaptive_hand_BB(bracelet.BB,hand.BB, isLeft);
     [n,m]=size(hue);
 
     Yl=max(BB(2),1);
