@@ -1,4 +1,4 @@
-function hand_BB=adaptive_hand_BB(new_braclet_BB,old_hand_BB)
+function hand_BB=adaptive_hand_BB(new_braclet_BB,old_hand_BB, isLeft)
     if old_hand_BB(1)==0
         alpha=1;
         beta=1;
@@ -22,9 +22,15 @@ function hand_BB=adaptive_hand_BB(new_braclet_BB,old_hand_BB)
     new_dx=9*dx;
     new_dy=6*dx;
     new_ylim=max((ylim-5*dx),1);
-    new_xlim=max((xlim-2*dx),1);
-
-    new_dx=floor(alpha*new_dx+(1-alpha)*dx_old);
+    if isLeft
+        new_xlim=max((xlim-2*dx),1);
+          
+    else
+        new_xlim=max((xlim-7*dx),1);
+    
+    end
+  new_dx=floor(alpha*new_dx+(1-alpha)*dx_old);
+    
     new_dy=floor(alpha*new_dy+(1-alpha)*dy_old);
     new_xlim=floor(beta*new_xlim+(1-beta)*old_xlim);
     new_ylim=floor(beta*new_ylim+(1-beta)*old_ylim);
