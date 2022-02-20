@@ -6,6 +6,12 @@ function handles = find_hand_hsv(handles,hue,sat)
     BB=adaptive_hand_BB(bracelet.BB,hand.BB);
     [n,m]=size(hue);
 
+    hue=hue+0.5;
+    mask_hue=hue>=1;
+    hue(mask_hue)=hue(mask_hue)-1;
+
+    sat=sat.*(sat>0.15);
+
     Yl=max(BB(2),1);
     Yh=min(BB(2)+BB(4),n);
     Xl=max(BB(1),1);

@@ -6,11 +6,8 @@ pc_cam = "FaceTime HD Camera (Built-in)";
 microsoft_cam = "Microsoft® LifeCam HD-3000";
 cur_cam = microsoft_cam;
 warning('off');
-
-handles.webcam=webcam(cur_cam);
-if(cur_cam == pc_cam)
-    pause(1);
-end
+camera='Microsoft® LifeCam HD-3000';
+handles.webcam=webcam(camera);
 handles.wait_for_continue = 0;
 img= snapshot(handles.webcam);
 % if(cur_cam ==pc_cam )
@@ -84,7 +81,7 @@ while 1
         
         img=(snapshot(handles.webcam));
         [hue,sat,v]=rgb2hsv(img);
-        v_mask=(v<0.95).*(v>0.05);
+        v_mask=(v>0.25);
         handles.hand.old_BB=handles.hand.BB;
         handles=find_bracelet_hs(handles,v_mask.*hue,v_mask.*sat);
         if handles.bracelet.BB(1)~=0
