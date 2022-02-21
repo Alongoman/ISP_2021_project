@@ -4,18 +4,15 @@ clear
 close all
 pc_cam = "FaceTime HD Camera (Built-in)";
 microsoft_cam = "Microsoft® LifeCam HD-3000";
-cur_cam = microsoft_cam;
+cur_cam = pc_cam;
 warning('off');
-
 handles.webcam=webcam(cur_cam);
-if(cur_cam == pc_cam)
+if(cur_cam ==pc_cam )
     pause(1);
 end
 handles.wait_for_continue = 0;
 img= snapshot(handles.webcam);
-% if(cur_cam ==pc_cam )
-%     pause(2);
-% end
+
 gui_handles.fig = figure('Name','The Visual Mouse',...
     'Position', [150, 100, 1500, 1000],...
     'NumberTitle','off');
@@ -93,16 +90,17 @@ while 1
         
         img=(snapshot(handles.webcam));
         [hue,sat,v]=rgb2hsv(img);
-        v_mask=(v<0.95).*(v>0.05);
+        v_mask=(v>0.25);
         handles.hand.old_BB=handles.hand.BB;
         handles=find_bracelet_hs(handles,v_mask.*hue,v_mask.*sat);
         if handles.bracelet.BB(1)~=0
-            handles = find_hand_hsv(handles,v_mask.*hue,v_mask.*sat, isLeft);
+            handles = find_hand_hsv(handles,v_mask.*hue,v_mask.*sat,v_mask.*v, isLeft);
             if harsh
-            handles.hand.mask = fix_hand_mask(handles);
+                handles.hand.mask = fix_hand_mask(handles);
             end
             handles = find_palm_center(handles);
             [finger_num, center_of_mass] = count_fingers(handles.hand.mask, handles.hand.palm_center);
+
             BB_hand = handles.hand.BB;
             center_of_mass(1) = center_of_mass(1) + BB_hand(1);
             center_of_mass(2) = center_of_mass(2) + BB_hand(2);
