@@ -8,10 +8,10 @@ function [handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img,points, 
 %   parameter we can mark the location where the hand was found. 
 
 
-    err_sat=5;
-    err_hue=3;
-%     err_sat_final=5;
-%     err_hue_final=3;
+    err_sat=9;
+    err_hue=5;
+    err_sat_final=6;
+    err_hue_final=4;
     err_val=12;
     % the distance we accept from the mean, which is where the
 %   value is of size mean*exp(-err) the bigger it is the more the
@@ -37,7 +37,7 @@ function [handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img,points, 
     hue_small(mask_hue)=hue_small(mask_hue)-1;
 
 
-    sat_mask=logical(sat_small>0.1);
+    sat_mask=logical(sat_small>0);
 
     value_mask=logical((v_small>0.35).*sat_mask); %in regions where the 
     % light is too strong or too weak the sturation and hue are not stable.  
@@ -79,70 +79,70 @@ function [handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img,points, 
     hand.val_low_th = miu_h(3)-sqrt(2*sigma_h(3)*err_val);
     hand.val_high_th = miu_h(3)+sqrt(2*sigma_h(3)*err_val);
     
-%     mask=logical(value_mask.*(sat_small>=hand.sat_low_th).*(sat_small<=hand.sat_high_th));
-%     mask=logical(mask.*(hue_small>=hand.hue_low_th).*(hue_small<=hand.hue_high_th));
+    mask=logical(value_mask.*(sat_small>=hand.sat_low_th).*(sat_small<=hand.sat_high_th));
+    mask=logical(mask.*(hue_small>=hand.hue_low_th).*(hue_small<=hand.hue_high_th));
 
     
     % Hue
-%     tmp=hue_small;
-%     x = tmp(mask);%here we take the hue that are part of sat group (the hue of object with high sat)
-%     x_point=hue_small(point(2),point(1));
-% 
-% %     gmodel=fitgmdist(x,2);
-% %     Sigma=gmodel.Sigma;
-% %     sigma_h1=Sigma(:,:,1);
-% %     sigma_h2=Sigma(:,:,2);
-% %     miu_h1=gmodel.mu(1);
-% %     miu_h2=gmodel.mu(2);
-% %     if abs(x_point-miu_h1)<=abs(x_point-miu_h2)
-% %         miu_h=miu_h1;sigma_h=sigma_h1;
-% %     else
-% %         miu_h=miu_h2;sigma_h=sigma_h2;
-% %     end
-%     
-%     clust = kmeans(x,2);
-%     [miu_h1,sigma_h1]=normfit(x(clust==1));
-%     [miu_h2,sigma_h2]=normfit(x(clust==2));
-%     if abs(x_point-miu_h2)>abs(x_point-miu_h1)
-%         miu_h=miu_h1;sigma_h=sigma_h1^2;
+    tmp=hue_small;
+    x = tmp(mask);%here we take the hue that are part of sat group (the hue of object with high sat)
+    x_point=hue_small(point(2),point(1));
+
+%     gmodel=fitgmdist(x,2);
+%     Sigma=gmodel.Sigma;
+%     sigma_h1=Sigma(:,:,1);
+%     sigma_h2=Sigma(:,:,2);
+%     miu_h1=gmodel.mu(1);
+%     miu_h2=gmodel.mu(2);
+%     if abs(x_point-miu_h1)<=abs(x_point-miu_h2)
+%         miu_h=miu_h1;sigma_h=sigma_h1;
 %     else
-%         miu_h=miu_h2;sigma_h=sigma_h2^2;
+%         miu_h=miu_h2;sigma_h=sigma_h2;
 %     end
-%     
-%     
-%     hand.hue_low_th = miu_h-sqrt(2*sigma_h*(err_hue_final));
-%     hand.hue_high_th = miu_h+sqrt(2*sigma_h*(err_hue_final));
-%     
-%     mask=logical(mask.*(tmp>=hand.hue_low_th).*(tmp<=hand.hue_high_th));
-% 
-% %     % Sat again
-%     tmp=sat_small;
-%     x = tmp(mask);
-%     x_point=sat_small(point(2),point(1));
-% %     gmodel=fitgmdist(x,2);
-% %     Sigma=gmodel.Sigma;
-% %     sigma_h1=Sigma(:,:,1);
-% %     sigma_h2=Sigma(:,:,2);
-% %     miu_h1=gmodel.mu(1);
-% %     miu_h2=gmodel.mu(2);
-% %     if abs(x_point-miu_h1)<=abs(x_point-miu_h2)
-% %         miu_h=miu_h1;sigma_h=sigma_h1;
-% %     else
-% %         miu_h=miu_h2;sigma_h=sigma_h2;
-% %     end
-%     
-%     clust = kmeans(x,2);
-%     [miu_h1,sigma_h1]=normfit(x(clust==1));
-%     [miu_h2,sigma_h2]=normfit(x(clust==2));
-%     if abs(x_point-miu_h2)>abs(x_point-miu_h1)
-%         miu_h=miu_h1;sigma_h=sigma_h1^2;
+    
+    clust = kmeans(x,2);
+    [miu_h1,sigma_h1]=normfit(x(clust==1));
+    [miu_h2,sigma_h2]=normfit(x(clust==2));
+    if abs(x_point-miu_h2)>abs(x_point-miu_h1)
+        miu_h=miu_h1;sigma_h=sigma_h1^2;
+    else
+        miu_h=miu_h2;sigma_h=sigma_h2^2;
+    end
+    
+    
+    hand.hue_low_th = miu_h-sqrt(2*sigma_h*(err_hue_final));
+    hand.hue_high_th = miu_h+sqrt(2*sigma_h*(err_hue_final));
+    
+    mask=logical(mask.*(tmp>=hand.hue_low_th).*(tmp<=hand.hue_high_th));
+
+%     % Sat again
+    tmp=sat_small;
+    x = tmp(mask);
+    x_point=sat_small(point(2),point(1));
+%     gmodel=fitgmdist(x,2);
+%     Sigma=gmodel.Sigma;
+%     sigma_h1=Sigma(:,:,1);
+%     sigma_h2=Sigma(:,:,2);
+%     miu_h1=gmodel.mu(1);
+%     miu_h2=gmodel.mu(2);
+%     if abs(x_point-miu_h1)<=abs(x_point-miu_h2)
+%         miu_h=miu_h1;sigma_h=sigma_h1;
 %     else
-%         miu_h=miu_h2;sigma_h=sigma_h2^2;
+%         miu_h=miu_h2;sigma_h=sigma_h2;
 %     end
-%     
-%     
-%     hand.sat_low_th = miu_h-sqrt(2*sigma_h*(err_sat_final));
-%     hand.sat_high_th = miu_h+sqrt(2*sigma_h*(err_sat_final));
+    
+    clust = kmeans(x,2);
+    [miu_h1,sigma_h1]=normfit(x(clust==1));
+    [miu_h2,sigma_h2]=normfit(x(clust==2));
+    if abs(x_point-miu_h2)>abs(x_point-miu_h1)
+        miu_h=miu_h1;sigma_h=sigma_h1^2;
+    else
+        miu_h=miu_h2;sigma_h=sigma_h2^2;
+    end
+    
+    
+    hand.sat_low_th = miu_h-sqrt(2*sigma_h*(err_sat_final));
+    hand.sat_high_th = miu_h+sqrt(2*sigma_h*(err_sat_final));
 
 
     handles.hand = hand;
