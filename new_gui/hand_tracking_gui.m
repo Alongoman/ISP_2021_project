@@ -3,8 +3,8 @@ clc
 clear
 close all
 pc_cam = "FaceTime HD Camera (Built-in)";
-microsoft_cam = "MicrosoftÂ® LifeCam HD-3000";
-cur_cam = pc_cam;
+microsoft_cam = "Microsoft® LifeCam HD-3000";
+cur_cam = microsoft_cam;
 warning('off');
 handles.webcam=webcam(cur_cam);
 if(cur_cam ==pc_cam )
@@ -14,7 +14,7 @@ handles.wait_for_continue = 0;
 img= snapshot(handles.webcam);
 
 gui_handles.fig = figure('Name','The Visual Mouse',...
-    'Position', [150, 100, 1500, 1000],...
+    'Position', [0, 0, 1500, 1000],...
     'NumberTitle','off');
 gui_handles.ax1 = subplot(2,1,1);
 gui_handles.ax2 = subplot(2,1,2);
@@ -241,6 +241,6 @@ py = uint16((paintery_scale-1)\(size_y-1)*(py-1)+1);
 px = max(1, min([px,painterx_scale]));
 py = max(1, min([py,paintery_scale]));
 
-px=x;
-py=y;
+% px=x;
+% py=y;
 end

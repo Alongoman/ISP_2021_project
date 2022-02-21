@@ -7,7 +7,7 @@
 
 
 function [counts, center_of_mass] = count_fingers(img,palm_center)
-
+w_center_of_mass = 0.7;
 img = uint8(img);
 [n,m,k] = size(img);
 center_of_mass = [floor(n/2), floor(m/2)];
@@ -35,7 +35,7 @@ stats=regionprops(img,'Centroid');
 
 bw = edge(img);
 
-center_of_mass = (uint16(stats(1).Centroid) + palm_center)/2;
+center_of_mass = double(w_center_of_mass*double(stats(1).Centroid) + (1-w_center_of_mass)*double(palm_center));
 x_cent = double(round(center_of_mass(1)));
 y_cent = double(round(center_of_mass(2)));
 
