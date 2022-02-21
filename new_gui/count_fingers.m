@@ -6,8 +6,7 @@
 
 
 
-function [counts, center_of_mass] = count_fingers(img)
-                                                
+function [counts, center_of_mass] = count_fingers(img,palm_center)
 
 img = uint8(img);
 [n,m,k] = size(img);
@@ -21,24 +20,24 @@ end
 stats=regionprops(img,'Centroid');
 
 
-try
+% try
 %if (isZero(img,stats))
 
 %    counts = 0;
  %   return;
 %end
-catch e
-    disp(e)
-    counts = -1;
-    return;
-end
+% catch e
+%     disp(e)
+%     counts = -1;
+%     return;
+% end
 
 
 bw = edge(img);
 
-center_of_mass = stats(1).Centroid;
-x_cent = round(center_of_mass(1));
-y_cent = round(center_of_mass(2));
+center_of_mass = (uint16(stats(1).Centroid) + palm_center)/2;
+x_cent = double(round(center_of_mass(1)));
+y_cent = double(round(center_of_mass(2)));
 
 % remove all below center
 bw2 = bw;
@@ -47,7 +46,7 @@ bw2 = bw;
 
 %find radius
 [py,px] = find(bw2==1);
-radii = vecnorm([px,py]-center_of_mass,2,2);
+radii = vecnorm([px,py]-[x_cent,y_cent],2,2);
 r_orig = max(radii);
 r = ceil(r_orig/2)*1.35;
 
@@ -60,8 +59,8 @@ intersect = A.*bw2;
 counts = ceil(counts/2) - 1;
 
 if(counts<5)
-fill_ratio = (r_orig^2)/sum(img,"all");
-if fill_ratio < 0.70
+fill_ratio = sum(img,"all")/(r_orig^2);
+if fill_ratio > 1.6
     counts = 0;
 end
 end
@@ -90,7 +89,7 @@ end
 % figure();imshow(g,[]);title(num2str(ceil(counts/2)));
 % figure();imshow(B,[]);title(num2str(ceil(counts/2)));
 
-% counts = min(counts,5);
+counts = min(counts,5);
 
 end
 

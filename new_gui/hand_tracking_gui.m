@@ -4,7 +4,7 @@ clear
 close all
 pc_cam = "FaceTime HD Camera (Built-in)";
 microsoft_cam = "Microsoft® LifeCam HD-3000";
-cur_cam = pc_cam;
+cur_cam = microsoft_cam;
 warning('off');
 
 handles.webcam=webcam(cur_cam);
@@ -68,9 +68,11 @@ guidata(gui_handles.fig,gui_handles);
 main_loop(gui_handles, handles);
 
 function handles = main_loop(gui_handles,handles)
+harsh = 0;
 isLeft = handles.isLeft;
-finger_history_len = 7;
+finger_history_len = 5;
 finger_history = zeros(1,finger_history_len);
+finger_history2 = zeros(1,finger_history_len);
 img=snapshot(handles.webcam);
 [img_height, img_width ,spectrum] = size(img);
 board = ones(img_height, img_width,3);
@@ -96,8 +98,11 @@ while 1
         handles=find_bracelet_hs(handles,v_mask.*hue,v_mask.*sat);
         if handles.bracelet.BB(1)~=0
             handles = find_hand_hsv(handles,v_mask.*hue,v_mask.*sat, isLeft);
-            
-            [finger_num, center_of_mass] = count_fingers(handles.hand.mask);
+            if harsh
+            handles.hand.mask = fix_hand_mask(handles);
+            end
+            handles = find_palm_center(handles);
+            [finger_num, center_of_mass] = count_fingers(handles.hand.mask, handles.hand.palm_center);
             BB_hand = handles.hand.BB;
             center_of_mass(1) = center_of_mass(1) + BB_hand(1);
             center_of_mass(2) = center_of_mass(2) + BB_hand(2);
@@ -105,7 +110,12 @@ while 1
             finger_history = circshift(finger_history,1);
             finger_history(1) = finger_num;
             
-            finger_num = mode(finger_history);
+            finger_num_tmp = mode(finger_history);
+
+            finger_history2 = circshift(finger_history2,1);
+            finger_history2(1) = finger_num_tmp;
+            
+            finger_num = mode(finger_history2);
             [px, py] = scale_pointer(center_of_mass(1), center_of_mass(2), img_width, img_height, prev_x, prev_y,painterx_scale,paintery_scale);
             %             px = px+prev_px;
             %             py = py+prev_py;
@@ -204,6 +214,8 @@ function handles = capture_function(gui_handles,handles, isLeft)
 img=snapshot(handles.webcam);
 imshow(img,[], 'Parent', gui_handles.ax1)
 init_points = ginput(2);
+b = init_points(1,:);
+h = init_points(2,:);
 handles = initial_bracelet_rep_hs(handles,img,init_points,'green');
 [handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img,init_points, isLeft);
 img2=insertShape(img,'Rectangle',handles.bracelet.BB,'Color','red','LineWidth',5);
@@ -211,6 +223,8 @@ img2=insertShape(img2,'Rectangle',first_time_hand_BB,'Color','blue','LineWidth',
 imshow(img2,[],'Parent', gui_handles.ax1)
 drawnow;
 handles.wait_for_continue = 1;
+handles.hand.dist_to_center = b-h;
+
 end
 
 function [px,py] = scale_pointer(x,y,size_x,size_y, prev_x, prev_y,painterx_scale,paintery_scale)
