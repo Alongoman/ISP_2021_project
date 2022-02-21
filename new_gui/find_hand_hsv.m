@@ -23,14 +23,16 @@ function handles = find_hand_hsv(handles,hue,sat,v, isLeft)
     tmpmask=logical((tmp1>=hand.sat_low_th).*(tmp1<=hand.sat_high_th).*(tmp>=hand.hue_low_th).*(tmp<=hand.hue_high_th));
     tmpmask=logical(tmpmask.*(tmp2>=hand.val_low_th).*(tmp2<=hand.val_high_th));
     
-    tmpmask=medfilt2(tmpmask);
  
-    se90=strel('line',3,90);se0=strel('line',3,0);%changed
-    tmpmask=imdilate(tmpmask,[se90 se0]);%changed
+     se90=strel('line',3,90);se0=strel('line',3,0);%changed
+     tmpmask=imdilate(tmpmask,[se90 se0]);%changed
 
-    tmpmask=bwareafilt(tmpmask,1,"largest");
+     %tmpmask = medfilt2(tmpmask, [7,7]);
+
+     tmpmask=bwareafilt(tmpmask,1,"largest");
     tmpmask=imfill(tmpmask,'holes');
-    
+    se_small = strel('line',3,90);
+    tmpmask = imerode(tmpmask,[se_small]);
     
     %mask(Yl:Yh,Xl:Xh)=tmpmask;
     hand.mask = tmpmask;

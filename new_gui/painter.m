@@ -7,7 +7,7 @@ if finger_num<1 || finger_num > length(color_array)
 end
 
 
-r=8;
+r=9;
 x = center(1);
 y = center(2);
 %color_array = ["black","yellow","cyan","magenta","blue","white","black"];

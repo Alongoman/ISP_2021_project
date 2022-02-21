@@ -3,13 +3,14 @@ clc
 clear
 close all
 pc_cam = "FaceTime HD Camera (Built-in)";
-microsoft_cam = "Microsoft® LifeCam HD-3000";
-cur_cam = microsoft_cam;
+microsoft_cam = "Microsoftï¿½ LifeCam HD-3000";
+cur_cam = pc_cam;
 warning('off');
 handles.webcam=webcam(cur_cam);
 if(cur_cam ==pc_cam )
     pause(1);
 end
+handles.harsh = 0; % will force other conditions for the algorithm
 handles.wait_for_continue = 0;
 img= snapshot(handles.webcam);
 
@@ -65,9 +66,8 @@ guidata(gui_handles.fig,gui_handles);
 main_loop(gui_handles, handles);
 
 function handles = main_loop(gui_handles,handles)
-harsh = 0;
 isLeft = handles.isLeft;
-finger_history_len = 5;
+finger_history_len = 7;
 finger_history = zeros(1,finger_history_len);
 finger_history2 = zeros(1,finger_history_len);
 img=snapshot(handles.webcam);
@@ -95,11 +95,11 @@ while 1
         handles=find_bracelet_hs(handles,v_mask.*hue,v_mask.*sat);
         if handles.bracelet.BB(1)~=0
             handles = find_hand_hsv(handles,v_mask.*hue,v_mask.*sat,v_mask.*v, isLeft);
-            if harsh
+            if handles.harsh
                 handles.hand.mask = fix_hand_mask(handles);
             end
             handles = find_palm_center(handles);
-            [finger_num, center_of_mass] = count_fingers(handles.hand.mask, handles.hand.palm_center);
+            [finger_num, center_of_mass] = count_fingers(handles);
 
             BB_hand = handles.hand.BB;
             center_of_mass(1) = center_of_mass(1) + BB_hand(1);
@@ -133,8 +133,11 @@ while 1
             
             subplot(2,2,[1,3])
             imshow(board,[], 'XData',[1,painterx_scale], 'YData',[1 paintery_scale]);
-            title("Your Color","Color",color, 'FontSize',40)
-            
+            if ~finger_num
+                title("No Color","Color",color, 'FontSize',40)
+            else
+                title("Your Color","Color",color, 'FontSize',40)
+            end
             hold on
             plot(px,py,'b+','MarkerSize',15,'LineWidth',3);
             hold off
@@ -222,6 +225,7 @@ imshow(img2,[],'Parent', gui_handles.ax1)
 drawnow;
 handles.wait_for_continue = 1;
 handles.hand.dist_to_center = b-h;
+handles = calibrate_fist(handles);
 
 end
 
@@ -229,14 +233,14 @@ function [px,py] = scale_pointer(x,y,size_x,size_y, prev_x, prev_y,painterx_scal
 px=x;
 py=y;
 
-% sizing_factor_x = 1;
-% sizing_factor_y = 1;
-% 
+sizing_factor_x = 1;
+sizing_factor_y = 1;
+
 % px =  sizing_factor_x*(x-prev_x);
 % py =  sizing_factor_y*(y-prev_y);
 
-px = uint16((painterx_scale-1)\(size_x-1)*(px-1)+1);
-py = uint16((paintery_scale-1)\(size_y-1)*(py-1)+1);
+px = sizing_factor_x*uint16((painterx_scale-1)\(size_x-1)*(px-1)+1);
+py = sizing_factor_y*uint16((paintery_scale-1)\(size_y-1)*(py-1)+1);
 
 px = max(1, min([px,painterx_scale]));
 py = max(1, min([py,paintery_scale]));

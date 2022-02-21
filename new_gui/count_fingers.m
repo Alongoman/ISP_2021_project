@@ -6,8 +6,17 @@
 
 
 
-function [counts, center_of_mass] = count_fingers(img,palm_center)
+function [counts, center_of_mass] = count_fingers(handles)
+img = handles.hand.mask;
+palm_center = handles.hand.palm_center;
+fist = handles.hand.fist;
+
 w_center_of_mass = 0.7;
+threshold = 0.95;
+r_scale = 1.1;
+if handles.harsh
+    r_scale = 1.35;
+end
 img = uint8(img);
 [n,m,k] = size(img);
 center_of_mass = [floor(n/2), floor(m/2)];
@@ -48,19 +57,21 @@ bw2 = bw;
 [py,px] = find(bw2==1);
 radii = vecnorm([px,py]-[x_cent,y_cent],2,2);
 r_orig = max(radii);
-r = ceil(r_orig/2)*1.35;
+r = ceil(r_orig/2)*r_scale;
 
 I = zeros(size(bw2));
-A = rgb2gray(insertShape(I,'circle',[x_cent,y_cent,r],'LineWidth',1));
+elipse = get_elipse(r,[1.4,0.9], [x_cent,y_cent]);
+A = imbinarize(rgb2gray(insertShape(I,'Polygon',elipse)));
+%A = rgb2gray(insertShape(I,'circle',[x_cent,y_cent,r],'LineWidth',1));
 
 intersect = A.*bw2;
 % counts = ceil((sum(intersect,'all'))/2);
 [g,counts] = bwlabel(intersect);
 counts = ceil(counts/2) - 1;
 
-if(counts<5)
+if(counts<3)
 fill_ratio = sum(img,"all")/(r_orig^2);
-if fill_ratio > 1.6
+if fill_ratio > threshold*fist
     counts = 0;
 end
 end
