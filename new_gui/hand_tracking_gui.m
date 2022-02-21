@@ -85,7 +85,7 @@ while 1
         handles.hand.old_BB=handles.hand.BB;
         handles=find_bracelet_hs(handles,v_mask.*hue,v_mask.*sat);
         if handles.bracelet.BB(1)~=0
-            handles = find_hand_hsv(handles,v_mask.*hue,v_mask.*sat);
+            handles = find_hand_hsv(handles,v_mask.*hue,v_mask.*sat,v_mask.*v);
             
             [finger_num, center_of_mass] = count_fingers(handles.hand.mask);
             BB_hand = handles.hand.BB;

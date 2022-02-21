@@ -2,7 +2,7 @@ function handles = initial_bracelet_rep_hs(handles,img,points,color)
     point = points(1,:);
     h=250;
     w=250;
-    err=0.5;
+    err=2;
     bracelet.alpha = 0.5;
     if strcmp(color,'green')
         init_low_th = 0.2;
@@ -55,8 +55,8 @@ function handles = initial_bracelet_rep_hs(handles,img,points,color)
         x = x(clust==2);
     end
     [miu_h,sigma_h]=normfit(x);
-    bracelet.hue_low_th = miu_h-sqrt(2*sigma_h^2*(err-0.5*log(2*pi*sigma_h^2)));
-    bracelet.hue_high_th = miu_h+sqrt(2*sigma_h^2*(err-0.5*log(2*pi*sigma_h^2)));
+    bracelet.hue_low_th = miu_h-sqrt(2*sigma_h^2*(err));
+    bracelet.hue_high_th = miu_h+sqrt(2*sigma_h^2*(err));
 
 %     clust = kmeans(x,2);
 %     if sum(clust==1)>sum(clust==2)
@@ -76,8 +76,8 @@ function handles = initial_bracelet_rep_hs(handles,img,points,color)
         miu_h=miu_h2;sigma_h=sigma_h2;
     end
 
-    bracelet.sat_low_th = miu_h-sqrt(2*sigma_h^2*(err-0.5*log(2*pi*sigma_h^2)));
-    bracelet.sat_high_th = miu_h+sqrt(2*sigma_h^2*(err-0.5*log(2*pi*sigma_h^2)));
+    bracelet.sat_low_th = miu_h-sqrt(2*sigma_h^2*(err));
+    bracelet.sat_high_th = miu_h+sqrt(2*sigma_h^2*(err));
 
 %%
     [hue_tot, sat_tot,~]=rgb2hsv(img);
