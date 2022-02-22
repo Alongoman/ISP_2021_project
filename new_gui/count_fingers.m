@@ -13,7 +13,7 @@ fist = handles.hand.fist;
 
 w_center_of_mass = 0.7;
 threshold = 0.95;
-r_scale = 1.1;
+r_scale = 1.15;
 if handles.harsh
     r_scale = 1.35;
 end
