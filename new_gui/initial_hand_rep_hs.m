@@ -8,7 +8,7 @@ function [handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img,points, 
 %   parameter we can mark the location where the hand was found. 
 
 
-    err_sat=1;
+    err_sat=3;
     if handles.harsh
         err_hue=1;
     else
@@ -18,7 +18,7 @@ function [handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img,points, 
 %     err_hue_final=4;
     err_val=2;
     err_Cb=1;
-    err_Cr=1;
+    err_Cr=2;
     err_Y=4;
     % the distance we accept from the mean, which is where the
 %   value is of size mean*exp(-err) the bigger it is the more the
@@ -124,33 +124,39 @@ function [handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img,points, 
     
     mask=logical(mask.*(Y_small>=hand.Y_low_th).*(Y_small<=hand.Y_high_th));
 
-    [miu_Cr,sigma_Cr]=normfit(Cr_small(mask));
-    [miu_Cb,sigma_Cb]=normfit(Cb_small(mask));
-    [miu_h,sigma_h]=normfit(hue_small(mask));
-    [miu_sat,sigma_sat]=normfit(sat_small(mask));
-    
-    sigma_Cr=sigma_Cr^2;
-    sigma_Cb=sigma_Cb^2;
-    sigma_h=sigma_h^2;
-    sigma_sat=sigma_sat^2;
+    x = [hue_small(mask) sat_small(mask) Cr_small(mask) Cb_small(mask)];
+%     x=[hue_small(mask) Cr_small(mask) Cb_small(mask)];
+    GMModel = fitgmdist(x,1,'Options',options,'CovarianceType','full');
+    tmpmask=creat_mask_from_gm(GMModel,hue_small,sat_small,Cr_small,Cb_small);
+    hand.gm=GMModel;
 
-    err_Y=3;
-    err_Cb=3;
-    err_Cr=4;
-    err_sat=4;
-    err_hue=3;
-
-    hand.sat_low_th = miu_sat-sqrt(2*sigma_sat*err_sat);
-    hand.sat_high_th = miu_sat+sqrt(2*sigma_sat*err_sat);
-    hand.hue_low_th = miu_h-sqrt(2*sigma_h*err_hue);
-    hand.hue_high_th = miu_h+sqrt(2*sigma_h*err_hue);
-
-    hand.Cr_low_th=miu_Cr-sqrt(2*sigma_Cr*err_Cr);
-    hand.Cr_high_th=miu_Cr+sqrt(2*sigma_Cr*err_Cr);
-    hand.Cb_low_th=miu_Cb-sqrt(2*sigma_Cb*err_Cb);
-    hand.Cb_high_th=miu_Cb+sqrt(2*sigma_Cb*err_Cb);
-
-
+%     [miu_Cr,sigma_Cr]=normfit(Cr_small(mask));
+%     [miu_Cb,sigma_Cb]=normfit(Cb_small(mask));
+%     [miu_h,sigma_h]=normfit(hue_small(mask));
+%     [miu_sat,sigma_sat]=normfit(sat_small(mask));
+%     
+%     sigma_Cr=sigma_Cr^2;
+%     sigma_Cb=sigma_Cb^2;
+%     sigma_h=sigma_h^2;
+%     sigma_sat=sigma_sat^2;
+% 
+%     err_Y=3;
+%     err_Cb=3;
+%     err_Cr=4;
+%     err_sat=4;
+%     err_hue=3;
+% 
+%     hand.sat_low_th = miu_sat-sqrt(2*sigma_sat*err_sat);
+%     hand.sat_high_th = miu_sat+sqrt(2*sigma_sat*err_sat);
+%     hand.hue_low_th = miu_h-sqrt(2*sigma_h*err_hue);
+%     hand.hue_high_th = miu_h+sqrt(2*sigma_h*err_hue);
+% 
+%     hand.Cr_low_th=miu_Cr-sqrt(2*sigma_Cr*err_Cr);
+%     hand.Cr_high_th=miu_Cr+sqrt(2*sigma_Cr*err_Cr);
+%     hand.Cb_low_th=miu_Cb-sqrt(2*sigma_Cb*err_Cb);
+%     hand.Cb_high_th=miu_Cb+sqrt(2*sigma_Cb*err_Cb);
+% 
+% 
 %     hand.Y_low_th=miu_h-sqrt(2*sigma_h*err_Y);
 %     hand.Y_high_th=max(miu_h+sqrt(2*sigma_h*err_Y),0.95);
 
@@ -209,10 +215,10 @@ function [handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img,points, 
 
 
     handles.hand = hand;
-    tmpmask=logical((sat_small>=hand.sat_low_th).*(sat_small<=hand.sat_high_th).*(hue_small>=hand.hue_low_th).*(hue_small<=hand.hue_high_th));
-    tmpmask=logical(tmpmask.*(Cb_small>=hand.Cb_low_th).*(Cb_small<=hand.Cb_high_th).*(Cr_small>=hand.Cr_low_th).*(Cr_small<=hand.Cr_high_th));
-    tmpmask=logical(tmpmask.*(v_small>=hand.val_low_th).*(v_small<=hand.val_high_th));
-    tmpmask=logical(tmpmask.*(Y_small>=hand.Y_low_th).*(Y_small<=hand.Y_high_th));
+%     tmpmask=logical((sat_small>=hand.sat_low_th).*(sat_small<=hand.sat_high_th).*(hue_small>=hand.hue_low_th).*(hue_small<=hand.hue_high_th));
+%     tmpmask=logical(tmpmask.*(Cb_small>=hand.Cb_low_th).*(Cb_small<=hand.Cb_high_th).*(Cr_small>=hand.Cr_low_th).*(Cr_small<=hand.Cr_high_th));
+%     tmpmask=logical(tmpmask.*(v_small>=hand.val_low_th).*(v_small<=hand.val_high_th));
+%     tmpmask=logical(tmpmask.*(Y_small>=hand.Y_low_th).*(Y_small<=hand.Y_high_th));
 
     tmpmask=bwareafilt(tmpmask,1,"largest");
     
