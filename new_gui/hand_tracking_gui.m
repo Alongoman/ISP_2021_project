@@ -14,14 +14,15 @@ handles.harsh = 0; % will force other conditions for the algorithm
 handles.wait_for_continue = 0;
 img= snapshot(handles.webcam);
 
-gui_handles.fig = figure('Name','The Visual Mouse',...
+gui_handles.fig = figure('Name','The Virtual Mouse',...
     'Position', [0, 0, 1500, 1000],...
     'NumberTitle','off');
 gui_handles.ax1 = subplot(2,1,1);
 gui_handles.ax2 = subplot(2,1,2);
+
 %gui_handles.ax1.Position = [0.1 0.4 0.7 0.5];
 %gui_handles.ax2.Position = [0.4 0.05 0.3 0.3];
-sgtitle('The Visual Mouse', 'FontSize', 32);
+sgtitle('The Virtual Mouse', 'FontSize', 32);
 gui_handles.bg = uibuttongroup('Parent',gui_handles.fig,...
     'HandleVisibility','on',...
     'Title','States:',...
@@ -62,8 +63,11 @@ gui_handles.state = 0;
 set(gui_handles.bg, 'Visible', 'on');
 set(gui_handles.bg,'SelectedObject',gui_handles.start)
 guidata(gui_handles.fig,gui_handles);
+instructions = imread("instructions.jpeg");
+imshow(instructions,[],'Parent', gui_handles.ax2);
 [gui_handles, handles] = calibration_loop(gui_handles.fig,handles);
 main_loop(gui_handles, handles);
+
 
 function handles = main_loop(gui_handles,handles)
 isLeft = handles.isLeft;
@@ -206,6 +210,7 @@ end
 function handles = start_function(gui_handles,handles)
 img=snapshot(handles.webcam);
 imshow(img,[],'Parent', gui_handles.ax1);
+
 drawnow;
 handles.wait_for_continue = 0;
 end
