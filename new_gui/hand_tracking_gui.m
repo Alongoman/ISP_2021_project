@@ -10,7 +10,7 @@ handles.webcam=webcam(cur_cam);
 if(cur_cam ==pc_cam )
     pause(1);
 end
-handles.harsh = 0; % will force other conditions for the algorithm
+handles.harsh = 1; % will force other conditions for the algorithm
 handles.wait_for_continue = 0;
 img= snapshot(handles.webcam);
 
@@ -94,7 +94,7 @@ while 1
         handles.hand.old_BB=handles.hand.BB;
         handles=find_bracelet_hs(handles,v_mask.*hue,v_mask.*sat);
         if handles.bracelet.BB(1)~=0
-            handles = find_hand_hsv(handles,v_mask.*hue,v_mask.*sat,v_mask.*v, isLeft);
+            handles = find_hand_hsv(handles,img,v_mask.*hue,v_mask.*sat,v_mask.*v, isLeft);
             if handles.harsh
                 handles.hand.mask = fix_hand_mask(handles);
             end

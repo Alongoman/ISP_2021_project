@@ -9,7 +9,7 @@ function hand_BB=adaptive_hand_BB(new_braclet_BB,old_hand_BB, isLeft)
 
     else
         alpha=0.5;
-        beta=alpha; 
+        beta=0.5; 
         old_xlim=old_hand_BB(1);
         old_ylim=old_hand_BB(2);
         dx_old=old_hand_BB(3);

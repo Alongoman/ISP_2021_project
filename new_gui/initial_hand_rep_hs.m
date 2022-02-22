@@ -8,15 +8,18 @@ function [handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img,points, 
 %   parameter we can mark the location where the hand was found. 
 
 
-    err_sat=2;
+    err_sat=1;
     if handles.harsh
-        err_hue=4;
+        err_hue=1;
     else
-        err_hue=3;
+        err_hue=2;
     end
-    err_sat_final=6;
-    err_hue_final=4;
-    err_val=3;
+%     err_sat_final=6;
+%     err_hue_final=4;
+    err_val=2;
+    err_Cb=1;
+    err_Cr=1;
+    err_Y=4;
     % the distance we accept from the mean, which is where the
 %   value is of size mean*exp(-err) the bigger it is the more the
 %   segmentation will include
@@ -33,7 +36,14 @@ function [handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img,points, 
     [point(1),point(2)] = make_valid(point(1),point(2), m,n);
 
     [hue,sat,v]=rgb2hsv(img);
+    YCBCR = rgb2ycbcr(img);
+    Y=YCBCR(:,:,1);
+    Cb=YCBCR(:,:,2);
+    Cr=YCBCR(:,:,3);
+
     hue_small=hue(Yl:Yh,Xl:Xh);sat_small=sat(Yl:Yh,Xl:Xh);v_small=v(Yl:Yh,Xl:Xh);
+    Cr_small=double(Cr(Yl:Yh,Xl:Xh))/255;Cb_small=double(Cb(Yl:Yh,Xl:Xh))/255;
+    Y_small=double(Y(Yl:Yh,Xl:Xh))/255;
     % we have no need to search for the hand in the entire image, so we
     % chose a rectangle around the hand (we dont want to find the face)
     hue_small=hue_small+0.5;
@@ -42,15 +52,15 @@ function [handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img,points, 
 
 
     sat_mask=logical(sat_small>0);
-
-    value_mask=logical((v_small>0.35).*sat_mask); %in regions where the 
+    Y_mask=logical((Y_small>0.3).*(Y_small<0.95));
+    value_mask=logical((v_small>0.3).*sat_mask.*Y_mask); %in regions where the 
     % light is too strong or too weak the sturation and hue are not stable.  
 
-    x = [hue_small(value_mask) sat_small(value_mask) v_small(value_mask)];
-    x_point=[hue_small(point(2),point(1));sat_small(point(2),point(1));v_small(point(2),point(1))];
+    x = [hue_small(value_mask) sat_small(value_mask) Cr_small(value_mask) Cb_small(value_mask)];
+    x_point=[hue_small(point(2),point(1));sat_small(point(2),point(1));Cr_small(point(2),point(1));Cb_small(point(2),point(1))];
     
     if handles.harsh
-        num_of_obj=4;
+        num_of_obj=3;
     else
         num_of_obj=3;
     end
@@ -66,8 +76,8 @@ function [handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img,points, 
     [~,numComponents] = min(AIC);
     gmodel = GMModels{numComponents};
 
-    Sigma=zeros(3,numComponents);
-    Mu=zeros(3,numComponents);
+    Sigma=zeros(4,numComponents);
+    Mu=zeros(4,numComponents);
     dist_vec=zeros(1,numComponents);
     sigma=gmodel.Sigma;
     for k=1:numComponents
@@ -83,17 +93,70 @@ function [handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img,points, 
     hand.sat_high_th = miu_h(2)+sqrt(2*sigma_h(2)*err_sat);
     hand.hue_low_th = miu_h(1)-sqrt(2*sigma_h(1)*err_hue);
     hand.hue_high_th = miu_h(1)+sqrt(2*sigma_h(1)*err_hue);
-    hand.val_low_th = miu_h(3)-sqrt(2*sigma_h(3)*err_val);
-    hand.val_high_th = miu_h(3)+sqrt(2*sigma_h(3)*err_val);
     
+    hand.val_low_th = 0.3;
+    hand.val_high_th = 1;
+    hand.Y_low_th=0.3;   
+    hand.Y_high_th=1;
+
+    hand.Cr_low_th=miu_h(3)-sqrt(2*sigma_h(3)*err_Cr);
+    hand.Cr_high_th=miu_h(3)+sqrt(2*sigma_h(3)*err_Cr);
+    hand.Cb_low_th=miu_h(4)-sqrt(2*sigma_h(4)*err_Cb);
+    hand.Cb_high_th=miu_h(4)+sqrt(2*sigma_h(4)*err_Cb);
+
     mask=logical(value_mask.*(sat_small>=hand.sat_low_th).*(sat_small<=hand.sat_high_th));
     mask=logical(mask.*(hue_small>=hand.hue_low_th).*(hue_small<=hand.hue_high_th));
+    mask=logical(mask.*(Cb_small>=hand.Cb_low_th).*(Cb_small<=hand.Cb_high_th).*(Cr_small>=hand.Cr_low_th).*(Cr_small<=hand.Cr_high_th));
 
+    tmp=Y_small;
+    x = tmp(mask);%here we take the hue that are part of sat group (the hue of object with high sat)
+    x_point=Y_small(point(2),point(1));
+    clust = kmeans(x,2);
+    [miu_h1,sigma_h1]=normfit(x(clust==1));
+    [miu_h2,sigma_h2]=normfit(x(clust==2));
+    if abs(x_point-miu_h2)>abs(x_point-miu_h1)
+        miu_h=miu_h1;sigma_h=sigma_h1^2;
+    else
+        miu_h=miu_h2;sigma_h=sigma_h2^2;
+    end
+    hand.Y_low_th=miu_h-sqrt(2*sigma_h*err_Y);
+    hand.Y_high_th=min(miu_h+sqrt(2*sigma_h*err_Y),0.95);
     
-%     % Hue
-%     tmp=hue_small;
-%     x = tmp(mask);%here we take the hue that are part of sat group (the hue of object with high sat)
-%     x_point=hue_small(point(2),point(1));
+    mask=logical(mask.*(Y_small>=hand.Y_low_th).*(Y_small<=hand.Y_high_th));
+
+    [miu_Cr,sigma_Cr]=normfit(Cr_small(mask));
+    [miu_Cb,sigma_Cb]=normfit(Cb_small(mask));
+    [miu_h,sigma_h]=normfit(hue_small(mask));
+    [miu_sat,sigma_sat]=normfit(sat_small(mask));
+    
+    sigma_Cr=sigma_Cr^2;
+    sigma_Cb=sigma_Cb^2;
+    sigma_h=sigma_h^2;
+    sigma_sat=sigma_sat^2;
+
+    err_Y=3;
+    err_Cb=3;
+    err_Cr=4;
+    err_sat=4;
+    err_hue=3;
+
+    hand.sat_low_th = miu_sat-sqrt(2*sigma_sat*err_sat);
+    hand.sat_high_th = miu_sat+sqrt(2*sigma_sat*err_sat);
+    hand.hue_low_th = miu_h-sqrt(2*sigma_h*err_hue);
+    hand.hue_high_th = miu_h+sqrt(2*sigma_h*err_hue);
+
+    hand.Cr_low_th=miu_Cr-sqrt(2*sigma_Cr*err_Cr);
+    hand.Cr_high_th=miu_Cr+sqrt(2*sigma_Cr*err_Cr);
+    hand.Cb_low_th=miu_Cb-sqrt(2*sigma_Cb*err_Cb);
+    hand.Cb_high_th=miu_Cb+sqrt(2*sigma_Cb*err_Cb);
+
+
+%     hand.Y_low_th=miu_h-sqrt(2*sigma_h*err_Y);
+%     hand.Y_high_th=max(miu_h+sqrt(2*sigma_h*err_Y),0.95);
+
+    hand.Y_low_th=0.3;
+    hand.Y_high_th=0.95;
+
 % 
 % %     gmodel=fitgmdist(x,2);
 % %     Sigma=gmodel.Sigma;
@@ -138,14 +201,7 @@ function [handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img,points, 
 % %         miu_h=miu_h2;sigma_h=sigma_h2;
 % %     end
 %     
-%     clust = kmeans(x,2);
-%     [miu_h1,sigma_h1]=normfit(x(clust==1));
-%     [miu_h2,sigma_h2]=normfit(x(clust==2));
-%     if abs(x_point-miu_h2)>abs(x_point-miu_h1)
-%         miu_h=miu_h1;sigma_h=sigma_h1^2;
-%     else
-%         miu_h=miu_h2;sigma_h=sigma_h2^2;
-%     end
+    
 %     
 %     
 %     hand.sat_low_th = miu_h-sqrt(2*sigma_h*(err_sat_final));
@@ -153,9 +209,11 @@ function [handles,first_time_hand_BB] = initial_hand_rep_hs(handles,img,points, 
 
 
     handles.hand = hand;
-
     tmpmask=logical((sat_small>=hand.sat_low_th).*(sat_small<=hand.sat_high_th).*(hue_small>=hand.hue_low_th).*(hue_small<=hand.hue_high_th));
-   
+    tmpmask=logical(tmpmask.*(Cb_small>=hand.Cb_low_th).*(Cb_small<=hand.Cb_high_th).*(Cr_small>=hand.Cr_low_th).*(Cr_small<=hand.Cr_high_th));
+    tmpmask=logical(tmpmask.*(v_small>=hand.val_low_th).*(v_small<=hand.val_high_th));
+    tmpmask=logical(tmpmask.*(Y_small>=hand.Y_low_th).*(Y_small<=hand.Y_high_th));
+
     tmpmask=bwareafilt(tmpmask,1,"largest");
     
     se90=strel('line',2,90);se0=strel('line',2,0);%changed
