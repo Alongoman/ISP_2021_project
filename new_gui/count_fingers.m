@@ -9,7 +9,7 @@
 function [counts, center_of_mass] = count_fingers(handles)
 img = handles.hand.mask;
 palm_center = handles.hand.palm_center;
-fist = handles.hand.fist;
+% fist = handles.hand.fist;
 
 w_center_of_mass = 0.7;
 threshold = 0.95;
@@ -112,55 +112,55 @@ counts = min(counts,5);
 
 end
 
-function out = isZero(img, stats)
-
-
-var_th = 3e3;
-
-[py,px] = find(img==1);
-center_of_mass = stats(1).Centroid;
-variance = mean(([px,py]-center_of_mass).^2,'all');
-if(variance>var_th)
-    
-    out = 0;
-    return
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    out =1;
-return;
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-k = boundary(px,py);
-
-
-x = px(k);
-y = py(k);
-
-polygon = [x,y];%,circshift(x,1),circshift(y,1)];
-filled_img = zeros(size(img));
-filled_img = imbinarize(rgb2gray(insertShape(filled_img,'FilledPolygon',polygon)));
-
-fill_ratio = sum(filled_img,'all')/sum(img,'all');
-if(fill_ratio>1.1)
-    
-    out = 0;
-    return
-end
-
-    
-% stats=regionprops(img,'Centroid');
+% function out = isZero(img, stats)
+% 
+% 
+% var_th = 3e3;
+% 
+% [py,px] = find(img==1);
 % center_of_mass = stats(1).Centroid;
-% radii = vecnorm([px,py]-center_of_mass,2,2);
-% max_ratio = max(radii)/mean(radii,'all');
-% if(max_ratio>2.4)
-%     disp("second out")
+% variance = mean(([px,py]-center_of_mass).^2,'all');
+% if(variance>var_th)
 %     
-%     out=0;
+%     out = 0;
 %     return
 % end
-    out =1;
-        %disp("third out")
-        %
-
-
-end
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%     out =1;
+% return;
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
+% k = boundary(px,py);
+% 
+% 
+% x = px(k);
+% y = py(k);
+% 
+% polygon = [x,y];%,circshift(x,1),circshift(y,1)];
+% filled_img = zeros(size(img));
+% filled_img = imbinarize(rgb2gray(insertShape(filled_img,'FilledPolygon',polygon)));
+% 
+% fill_ratio = sum(filled_img,'all')/sum(img,'all');
+% if(fill_ratio>1.1)
+%     
+%     out = 0;
+%     return
+% end
+% 
+%     
+% % stats=regionprops(img,'Centroid');
+% % center_of_mass = stats(1).Centroid;
+% % radii = vecnorm([px,py]-center_of_mass,2,2);
+% % max_ratio = max(radii)/mean(radii,'all');
+% % if(max_ratio>2.4)
+% %     disp("second out")
+% %     
+% %     out=0;
+% %     return
+% % end
+%     out =1;
+%         %disp("third out")
+%         %
+% 
+% 
+% end

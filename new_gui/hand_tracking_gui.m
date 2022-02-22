@@ -71,6 +71,7 @@ main_loop(gui_handles, handles);
 
 function handles = main_loop(gui_handles,handles)
 isLeft = handles.isLeft;
+color = [1,1,1];
 finger_history_len = 7;
 finger_history = zeros(1,finger_history_len);
 finger_history2 = zeros(1,finger_history_len);
@@ -126,7 +127,7 @@ while 1
             prev_x = center_of_mass(1);
             prev_y = center_of_mass(2);
             px = img_width - px;
-            [board,color] = painter(board, [px,py], finger_num);
+            [board,color] = painter(board, [px,py], finger_num, color);
             %             imshow(handles.hand.mask,[], 'Parent', gui_handles.ax2);
             %drawnow;
             %             if handles.hand.BB(1)~=0
@@ -138,7 +139,9 @@ while 1
             subplot(2,2,[1,3])
             imshow(board,[], 'XData',[1,painterx_scale], 'YData',[1 paintery_scale]);
             if ~finger_num
-                title("No Color","Color",color, 'FontSize',40)
+                title("Draw","Color",color, 'FontSize',40)
+            elseif finger_num == 4 || finger_num == 5
+                title("Erase","Color",'k', 'FontSize',40)
             else
                 title("Your Color","Color",color, 'FontSize',40)
             end
