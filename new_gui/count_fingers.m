@@ -69,9 +69,17 @@ intersect = A.*bw2;
 [g,counts] = bwlabel(intersect);
 counts = ceil(counts/2) - 1;
 
+
+
 if(counts<3)
-fill_ratio = sum(img,"all")/(r_orig^2);
-if fill_ratio > threshold*fist
+%fill_ratio = sum(img,"all")/(r_orig^2);
+
+se = strel('disk',20);
+b = handles.hand.mask;
+c = imopen(b,se);
+areas_ratio = sum(b,'all')/sum(c,'all');
+
+if areas_ratio<1.1 %fill_ratio > threshold*fist || 
     counts = 0;
 end
 end

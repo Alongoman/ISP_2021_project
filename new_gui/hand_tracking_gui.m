@@ -225,7 +225,7 @@ imshow(img2,[],'Parent', gui_handles.ax1)
 drawnow;
 handles.wait_for_continue = 1;
 handles.hand.dist_to_center = b-h;
-handles = calibrate_fist(handles);
+% handles = calibrate_fist(handles);
 
 end
 
