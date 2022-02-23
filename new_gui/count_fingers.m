@@ -49,22 +49,27 @@ x_cent = double(round(center_of_mass(1)));
 y_cent = double(round(center_of_mass(2)));
 
 % remove all below center
-bw2 = bw;
 % bw2(y_cent:end,:) = 0;
 
 
 %find radius
-[py,px] = find(bw2==1);
+[py,px] = find(bw==1);
 radii = vecnorm([px,py]-[x_cent,y_cent],2,2);
 r_orig = max(radii);
 r = ceil(r_orig/2)*r_scale;
 
-I = zeros(size(bw2));
+I = zeros(size(bw));
 elipse = get_elipse(r,[1.55,0.9], [x_cent,y_cent]);
 A = imbinarize(rgb2gray(insertShape(I,'Polygon',elipse)));
 %A = rgb2gray(insertShape(I,'circle',[x_cent,y_cent,r],'LineWidth',1));
 
-intersect = A.*bw2;
+intersect1 = A1.*bw;
+intersect2 = A2.*bw;
+intersect3 = A3.*bw;
+intersect4 = A4.*bw;
+cell_inter={intersect1,intersect2,intersect3,intersect4};
+
+counts=[];
 %% counts = ceil((sum(intersect,'all'))/2);
 [g,counts] = bwlabel(intersect);
 counts = ceil(counts/2) - 1;
