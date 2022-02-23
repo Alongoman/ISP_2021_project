@@ -14,14 +14,15 @@ handles.harsh = 1; % will force other conditions for the algorithm
 handles.wait_for_continue = 0;
 img= snapshot(handles.webcam);
 
-gui_handles.fig = figure('Name','The Visual Mouse',...
+gui_handles.fig = figure('Name','The Virtual Mouse',...
     'Position', [0, 0, 1500, 1000],...
     'NumberTitle','off');
 gui_handles.ax1 = subplot(2,1,1);
 gui_handles.ax2 = subplot(2,1,2);
+
 %gui_handles.ax1.Position = [0.1 0.4 0.7 0.5];
 %gui_handles.ax2.Position = [0.4 0.05 0.3 0.3];
-sgtitle('The Visual Mouse', 'FontSize', 32);
+sgtitle('The Virtual Mouse', 'FontSize', 32);
 gui_handles.bg = uibuttongroup('Parent',gui_handles.fig,...
     'HandleVisibility','on',...
     'Title','States:',...
@@ -62,11 +63,15 @@ gui_handles.state = 0;
 set(gui_handles.bg, 'Visible', 'on');
 set(gui_handles.bg,'SelectedObject',gui_handles.start)
 guidata(gui_handles.fig,gui_handles);
+instructions = imread("instructions.jpeg");
+imshow(instructions,[],'Parent', gui_handles.ax2);
 [gui_handles, handles] = calibration_loop(gui_handles.fig,handles);
 main_loop(gui_handles, handles);
 
+
 function handles = main_loop(gui_handles,handles)
 isLeft = handles.isLeft;
+color = [1,1,1];
 finger_history_len = 7;
 finger_history = zeros(1,finger_history_len);
 finger_history2 = zeros(1,finger_history_len);
@@ -122,7 +127,7 @@ while 1
             prev_x = center_of_mass(1);
             prev_y = center_of_mass(2);
             px = img_width - px;
-            [board,color] = painter(board, [px,py], finger_num);
+            [board,color] = painter(board, [px,py], finger_num, color);
             %             imshow(handles.hand.mask,[], 'Parent', gui_handles.ax2);
             %drawnow;
             %             if handles.hand.BB(1)~=0
@@ -134,7 +139,9 @@ while 1
             subplot(2,2,[1,3])
             imshow(board,[], 'XData',[1,painterx_scale], 'YData',[1 paintery_scale]);
             if ~finger_num
-                title("No Color","Color",color, 'FontSize',40)
+                title("Draw","Color",color, 'FontSize',40)
+            elseif finger_num == 4 || finger_num == 5
+                title("Erase","Color",'k', 'FontSize',40)
             else
                 title("Your Color","Color",color, 'FontSize',40)
             end
@@ -209,6 +216,7 @@ end
 function handles = start_function(gui_handles,handles)
 img=snapshot(handles.webcam);
 imshow(img,[],'Parent', gui_handles.ax1);
+
 drawnow;
 handles.wait_for_continue = 0;
 end
@@ -228,7 +236,7 @@ imshow(img2,[],'Parent', gui_handles.ax1)
 drawnow;
 handles.wait_for_continue = 1;
 handles.hand.dist_to_center = b-h;
-handles = calibrate_fist(handles);
+% handles = calibrate_fist(handles);
 
 end
 
