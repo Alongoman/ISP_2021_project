@@ -3,7 +3,7 @@ clc
 clear
 close all
 pc_cam = "FaceTime HD Camera (Built-in)";
-microsoft_cam = "Microsoft� LifeCam HD-3000";
+microsoft_cam = "Microsoft® LifeCam HD-3000";
 cur_cam = pc_cam;
 warning('off');
 handles.webcam=webcam(cur_cam);
@@ -71,16 +71,21 @@ main_loop(gui_handles, handles);
 
 function handles = main_loop(gui_handles,handles)
 isLeft = handles.isLeft;
-color = [1,1,1];
+color = reshape([1,1,1],[1,1,3]);
 finger_history_len = 7;
 finger_history = zeros(1,finger_history_len);
 finger_history2 = zeros(1,finger_history_len);
 img=snapshot(handles.webcam);
 [img_height, img_width ,spectrum] = size(img);
 board = ones(img_height, img_width,3);
+instruction2 = imread("instruction2.jpeg");
 fh = figure(1);
 fh.WindowState = 'maximized';
-imshow(board,[]);
+subplot(2,2,3)
+imshow(instruction2);
+title("instructions");
+
+
 painterx_scale = img_width;
 paintery_scale = img_height;
 
@@ -99,7 +104,7 @@ while 1
         handles.hand.old_BB=handles.hand.BB;
         handles=find_bracelet_hs(handles,v_mask.*hue,v_mask.*sat);
         if handles.bracelet.BB(1)~=0
-            handles = find_hand_hsv(handles,img,v_mask.*hue,v_mask.*sat,v_mask.*v, isLeft);
+            handles = find_hand_hsv(handles,v_mask.*hue,v_mask.*sat,v_mask.*v, isLeft);
             if handles.harsh
                 handles.hand.mask = fix_hand_mask(handles);
             end
@@ -136,7 +141,7 @@ while 1
             %imshow(uint8(painter),[], 'Parent', gui_handles.ax1)
             
             
-            subplot(2,2,[1,3])
+            subplot(2,2,1)
             imshow(board,[], 'XData',[1,painterx_scale], 'YData',[1 paintery_scale]);
             if ~finger_num
                 title("Draw","Color",color, 'FontSize',40)
@@ -157,10 +162,7 @@ while 1
             subplot(2,2,2)
             imshow(flip(img,2),[])
             hold on
-            px = handles.bracelet.BB(1);
-            py = handles.bracelet.BB(2);
-%             plot(img_width-center_of_mass(1),center_of_mass(2),'b+','MarkerSize',15,'LineWidth',3);
-            plot(img_width-px,py,'b+','MarkerSize',15,'LineWidth',3);
+            plot(img_width-center_of_mass(1),center_of_mass(2),'b+','MarkerSize',15,'LineWidth',3);
             hold off
             fh.WindowState = 'maximized';
             
@@ -175,6 +177,9 @@ while 1
         disp(e)
         disp(e.stack(1))
         title("error detected",'FontSize',30,'Color','red');
+        subplot(2,2,3)
+        imshow(instruction2);
+        title("");
     end
 end
 end
