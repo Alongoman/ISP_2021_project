@@ -65,7 +65,7 @@ A = imbinarize(rgb2gray(insertShape(I,'Polygon',elipse)));
 %A = rgb2gray(insertShape(I,'circle',[x_cent,y_cent,r],'LineWidth',1));
 
 intersect = A.*bw2;
-% counts = ceil((sum(intersect,'all'))/2);
+%% counts = ceil((sum(intersect,'all'))/2);
 [g,counts] = bwlabel(intersect);
 counts = ceil(counts/2) - 1;
 
