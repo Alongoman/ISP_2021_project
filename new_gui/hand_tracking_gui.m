@@ -71,16 +71,21 @@ main_loop(gui_handles, handles);
 
 function handles = main_loop(gui_handles,handles)
 isLeft = handles.isLeft;
-color = [1,1,1];
+color = reshape([1,1,1],[1,1,3]);
 finger_history_len = 7;
 finger_history = zeros(1,finger_history_len);
 finger_history2 = zeros(1,finger_history_len);
 img=snapshot(handles.webcam);
 [img_height, img_width ,spectrum] = size(img);
 board = ones(img_height, img_width,3);
+instruction2 = imread("instruction2.jpeg");
 fh = figure(1);
 fh.WindowState = 'maximized';
-imshow(board,[]);
+subplot(2,2,3)
+imshow(instruction2);
+title("instructions");
+
+
 painterx_scale = img_width;
 paintery_scale = img_height;
 
@@ -136,7 +141,7 @@ while 1
             %imshow(uint8(painter),[], 'Parent', gui_handles.ax1)
             
             
-            subplot(2,2,[1,3])
+            subplot(2,2,1)
             imshow(board,[], 'XData',[1,painterx_scale], 'YData',[1 paintery_scale]);
             if ~finger_num
                 title("Draw","Color",color, 'FontSize',40)
@@ -172,6 +177,9 @@ while 1
         disp(e)
         disp(e.stack(1))
         title("error detected",'FontSize',30,'Color','red');
+        subplot(2,2,3)
+        imshow(instruction2);
+        title("");
     end
 end
 end
