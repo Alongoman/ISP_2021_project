@@ -59,8 +59,18 @@ r_orig = max(radii);
 r = ceil(r_orig/2)*r_scale;
 
 I = zeros(size(bw));
-elipse = get_elipse(r,[1.55,0.9], [x_cent,y_cent]);
-A = imbinarize(rgb2gray(insertShape(I,'Polygon',elipse)));
+elipse1 = get_elipse(r,[1.4,0.9], [x_cent,y_cent]);
+elipse2 = get_elipse(r,[1.42,1.1], [x_cent,y_cent]);
+elipse3 = get_elipse(r,[1.2,0.9], [x_cent,y_cent]);
+elipse4 = get_elipse(r,[1.2,1.1], [x_cent,y_cent]);
+
+
+A1 = imbinarize(rgb2gray(insertShape(I,'Polygon',elipse1)));
+A2 = imbinarize(rgb2gray(insertShape(I,'Polygon',elipse2)));
+A3 = imbinarize(rgb2gray(insertShape(I,'Polygon',elipse3)));
+A4 = imbinarize(rgb2gray(insertShape(I,'Polygon',elipse4)));
+
+
 %A = rgb2gray(insertShape(I,'circle',[x_cent,y_cent,r],'LineWidth',1));
 
 intersect1 = A1.*bw;
@@ -68,12 +78,13 @@ intersect2 = A2.*bw;
 intersect3 = A3.*bw;
 intersect4 = A4.*bw;
 cell_inter={intersect1,intersect2,intersect3,intersect4};
-
 counts=[];
 %% counts = ceil((sum(intersect,'all'))/2);
-[g,counts] = bwlabel(intersect);
-counts = ceil(counts/2) - 1;
-
+for i=1:4
+    [~,counts1] = bwlabel(cell_inter{i});
+    counts =[counts (ceil(counts1/2) - 1)];
+end
+counts=max(counts);
 
 
 if(counts<3)
