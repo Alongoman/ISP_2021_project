@@ -60,7 +60,7 @@ r_orig = max(radii);
 r = ceil(r_orig/2)*r_scale;
 
 I = zeros(size(bw2));
-elipse = get_elipse(r,[1.6,0.9], [x_cent,y_cent]);
+elipse = get_elipse(r,[1.55,0.9], [x_cent,y_cent]);
 A = imbinarize(rgb2gray(insertShape(I,'Polygon',elipse)));
 %A = rgb2gray(insertShape(I,'circle',[x_cent,y_cent,r],'LineWidth',1));
 
