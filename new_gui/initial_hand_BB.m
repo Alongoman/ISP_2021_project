@@ -8,7 +8,7 @@ function hand_BB=initial_hand_BB(new_braclet_BB,old_hand_BB)
         old_ylim=0;
 
     else
-        alpha=0.25;
+        alpha=0.1;
         beta=alpha; 
         old_xlim=old_hand_BB(1);
         old_ylim=old_hand_BB(2);

@@ -150,7 +150,10 @@ while 1
             subplot(2,2,2)
             imshow(flip(img,2),[])
             hold on
-            plot(img_width-center_of_mass(1),center_of_mass(2),'b+','MarkerSize',15,'LineWidth',3);
+            px = handles.bracelet.BB(1);
+            py = handles.bracelet.BB(2);
+%             plot(img_width-center_of_mass(1),center_of_mass(2),'b+','MarkerSize',15,'LineWidth',3);
+            plot(img_width-px,py,'b+','MarkerSize',15,'LineWidth',3);
             hold off
             fh.WindowState = 'maximized';
             

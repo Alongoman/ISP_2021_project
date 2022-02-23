@@ -7,7 +7,7 @@ function tmpmask = creat_mask_from_gm(GMModel,hue_small,sat_small,Cr_small,Cb_sm
     Mu=GMModel.mu;
     Sigma=GMModel.Sigma;
     mat=mvnpdf(x,Mu,Sigma);
-    th=0.0001*mvnpdf(Mu,Mu,Sigma);
+    th=0.000001*mvnpdf(Mu,Mu,Sigma);
     mat=reshape(mat,size(hue_small));
     tmpmask=(mat>th);
 end
