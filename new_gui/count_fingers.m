@@ -1,17 +1,9 @@
-% img = imread("A5.jpeg");
-% c = count_fingers1(img)
-
-
-
-
-
 
 function [counts, center_of_mass] = count_fingers(handles)
 img = handles.hand.mask;
 % harsh = handles.harsh;
 harsh = 1;
 palm_center = handles.hand.palm_center;
-% fist = handles.hand.fist;
 
 w_center_of_mass = 0.7;
 threshold = 0.95;
@@ -21,7 +13,6 @@ if handles.harsh
 end
 img = uint8(img);
 [n,m,k] = size(img);
-center_of_mass = [floor(n/2), floor(m/2)];
 if k > 1
     img = imbinarize(rgb2gray(img));
 else
@@ -30,29 +21,22 @@ end
 
 stats=regionprops(img,'Centroid');
 
+center_of_mass = double(w_center_of_mass*double(stats(1).Centroid) + (1-w_center_of_mass)*double(palm_center));
 
-% try
-%if (isZero(img,stats))
+se = strel('disk',20);
+b = handles.hand.mask;
+c = imopen(b,se);
+areas_ratio = sum(b,'all')/sum(c,'all');
 
-%    counts = 0;
- %   return;
-%end
-% catch e
-%     disp(e)
-%     counts = -1;
-%     return;
-% end
-
+if areas_ratio<1.1
+    counts = 0;
+    return
+end
 
 bw = edge(img);
 
-center_of_mass = double(w_center_of_mass*double(stats(1).Centroid) + (1-w_center_of_mass)*double(palm_center));
 x_cent = double(round(center_of_mass(1)));
 y_cent = double(round(center_of_mass(2)));
-
-% remove all below center
-% bw2(y_cent:end,:) = 0;
-
 
 %find radius
 [py,px] = find(bw==1);
@@ -93,99 +77,9 @@ if harsh
         [~,counts1] = bwlabel(cell_inter{i});
         counts = [counts (ceil(counts1/2) - 1)];
     end
-    counts=max(counts);
+    counts=floor(median(counts));
 end
-
-if(counts<3)
-%fill_ratio = sum(img,"all")/(r_orig^2);
-
-se = strel('disk',20);
-b = handles.hand.mask;
-c = imopen(b,se);
-areas_ratio = sum(b,'all')/sum(c,'all');
-
-if areas_ratio<1.1 %fill_ratio > threshold*fist || 
-    counts = 0;
-end
-end
-
-    
-    
-    
-% var_th = 600;
-% 
-% [py,px] = find(img==1);
-% center_of_mass = stats(1).Centroid;
-% variance = mean(([px,py]-center_of_mass).^2,'all');
-% if(variance<var_th)
-%     counts=0;
-% end
-% end
-
-% figure(1); imshow(img);title("orig");
-% figure(2);imshow(bw);
-% figure(3);imshow(bw2);
-% figure(4);imshow(img);title(strcat("fingers:",num2str(counts)));
-% figure(5);imshow(A.*bw2,[]);title("masked");
-
-% B = rgb2gray(insertShape(uint8(255*bw2),'circle',[x_cent,y_cent,r],'LineWidth',1));
-% 
-% figure();imshow(g,[]);title(num2str(ceil(counts/2)));
-% figure();imshow(B,[]);title(num2str(ceil(counts/2)));
 
 counts = min(counts,5);
 
 end
-
-% function out = isZero(img, stats)
-% 
-% 
-% var_th = 3e3;
-% 
-% [py,px] = find(img==1);
-% center_of_mass = stats(1).Centroid;
-% variance = mean(([px,py]-center_of_mass).^2,'all');
-% if(variance>var_th)
-%     
-%     out = 0;
-%     return
-% end
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%     out =1;
-% return;
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% 
-% k = boundary(px,py);
-% 
-% 
-% x = px(k);
-% y = py(k);
-% 
-% polygon = [x,y];%,circshift(x,1),circshift(y,1)];
-% filled_img = zeros(size(img));
-% filled_img = imbinarize(rgb2gray(insertShape(filled_img,'FilledPolygon',polygon)));
-% 
-% fill_ratio = sum(filled_img,'all')/sum(img,'all');
-% if(fill_ratio>1.1)
-%     
-%     out = 0;
-%     return
-% end
-% 
-%     
-% % stats=regionprops(img,'Centroid');
-% % center_of_mass = stats(1).Centroid;
-% % radii = vecnorm([px,py]-center_of_mass,2,2);
-% % max_ratio = max(radii)/mean(radii,'all');
-% % if(max_ratio>2.4)
-% %     disp("second out")
-% %     
-% %     out=0;
-% %     return
-% % end
-%     out =1;
-%         %disp("third out")
-%         %
-% 
-% 
-% end
