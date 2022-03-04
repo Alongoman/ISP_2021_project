@@ -77,7 +77,7 @@ if harsh
         [~,counts1] = bwlabel(cell_inter{i});
         counts = [counts (ceil(counts1/2) - 1)];
     end
-    counts=floor(median(counts));
+    counts=ceil(median(counts));
 end
 
 counts = min(counts,5);

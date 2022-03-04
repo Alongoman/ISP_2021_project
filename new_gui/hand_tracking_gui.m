@@ -70,6 +70,8 @@ main_loop(gui_handles, handles);
 
 
 function handles = main_loop(gui_handles,handles)
+finger_arr_hist = [];
+finger_arr = [];
 isLeft = handles.isLeft;
 color = reshape([1,1,1],[1,1,3]);
 finger_history_len = 7;
@@ -117,7 +119,7 @@ while 1
             
             finger_history = circshift(finger_history,1);
             finger_history(1) = finger_num;
-            
+            actual_finger = finger_num;
             finger_num_tmp = mode(finger_history);
 
             finger_history2 = circshift(finger_history2,1);
@@ -167,9 +169,24 @@ while 1
             fh.WindowState = 'maximized';
             
             
+            finger_arr_hist = [finger_arr_hist, finger_num];
+            finger_arr = [finger_arr, actual_finger];
             
-            
-            
+            if length(finger_arr_hist) >= 100
+                n = length(finger_arr_hist);
+                disp("with history")
+                for i =0:5
+                    k = sum(finger_arr_hist == i);
+                    disp(num2str(i) + ": "+ num2str(k))
+                end
+                disp("no history")
+                for i =0:5
+                    k = sum(finger_arr == i);
+                    disp(num2str(i) + ": "+ num2str(k))
+                end
+                finger_arr=[];
+                finger_arr_hist=[];
+            end
             
             
         end
