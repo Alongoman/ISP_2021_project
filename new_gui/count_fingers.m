@@ -73,7 +73,7 @@ if harsh
     elipse3 = get_elipse(r,[1.25,0.9], [x_cent,y_cent]);
     elipse4 = get_elipse(r,[1.25,1.1], [x_cent,y_cent]);
     elipse5 = get_elipse(r,[1.25,1], [x_cent,y_cent]);
-    elipse6 = get_elipse(r,[1.5,1], [x_cent,y_cent]);
+    elipse6 = get_elipse(r,[1.4,1], [x_cent,y_cent]);
     
     A2 = imbinarize(rgb2gray(insertShape(I,'Polygon',elipse2)));
     A3 = imbinarize(rgb2gray(insertShape(I,'Polygon',elipse3)));
